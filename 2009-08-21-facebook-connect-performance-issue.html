@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Facebook connect performance issue">
+    <title>Facebook connect performance issue - Gary Teh's Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>Facebook connect performance issue</h1>
+            <div class="post-meta">
+                <span class="post-date">August 21, 2009</span>
+                <span class="category-tag">Uncategorized</span>
+                <span class="tag">black swan</span><span class="tag">social media</span><span class="tag">buggy</span><span class="tag">programming</span><span class="tag">social networking</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <p>Last night I was sitting with Satheesh and Jim working on <a href="http://singaporerental.com">SingaporeRental.com</a>. We happened to talked about <a href="http://thingstodosingapore.com">ThingsToDoSingapore.com</a> during our conversation in my living room.</p>
+<p>Satheesh said that the  site was experiencing very very slow loading time. I knew that the site was slow in loading since before I stopped touching it in terms of coding. I have been getting rather busy with my own IT projects recently.</p>
+<p>Today finally finding some time for myself I decided to do some tweaking to my favorite pet project. The coding was familiar. I have yet to port it to any content management system. I actually have two systems in mind which I could do the porting to. One is WordPress the other is Joomla.</p>
+<p>Given the choice between the two I rather like Wordpress better. First off, it is lighter more agile and has this well established PingBack System which could be easily used for generating more Traffic on the world wide  web.</p>
+<p>Once again on that hosthi server I experienced very slow loading  time. Nothing knowing which was really causing this problem I decided to do some split testing. I suspected that it could either be the server running low of bandwidht or that google friends connect was unstable again. So I pointed ThingsToDoSingapore.com to my local testing web server and ran the scripts.</p>
+<p>Much to my surprise, the stage when I was experiencing the bottle neck was at ak.connect.facebook.com. So apparently it was the part where <a href="http://thingstodosingapore.com">Things To Do Singapore </a>gathers content from the facebook server that things start to really slow down.</p>
+<p>From my experience, Facebook has been experiencing very bad performance issues the past few weeks. If you went to the site and tried to login, half the time the images do not load properly. Suspecting that it would only affect facebook.com, I was wrongly, apparently it does affect other sites which uses facebook connect as well.</p>
+<p>Searching on the web for the possible reason, I identified the denial of <a href="http://www.cantonrep.com/business/x1701870632/Hackers-attack-Twitter-slow-down-Facebook">service attack on facebook </a>as a possible  contributing factor. It is crazy actually that things nowadays are so interconnected that when a hub goes down the spooks get affected too.</p>
+<p>I believe somewhere along the way, with all the interconnectedness as well as cloud computing,  it will really be easy to bring down the whole world wide web with a touch of the button. Another possible <a href="http://freakonomics.blogs.nytimes.com/2007/05/21/straight-from-the-black-swans-mouth/">black swan</a> is in the making</p>
+<p><strong>More References on the Black Swan</strong></p>
+<p><a href="http://samdavidson.blogspot.com/2009/01/black-swan.html">http://samdavidson.blogspot.com/2009/01/black-swan.html</a></p>
+<p><a href="http://en.wikipedia.org/wiki/Black_swan_theory">http://en.wikipedia.org/wiki/Black_swan_theory</a></p>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2024</p>
+        </footer>
+    </div>
+</body>
+</html>

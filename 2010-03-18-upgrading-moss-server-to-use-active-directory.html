@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Upgrading MOSS server to use Active Directory">
+    <title>Upgrading MOSS server to use Active Directory - Gary Teh's Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>Upgrading MOSS server to use Active Directory</h1>
+            <div class="post-meta">
+                <span class="post-date">March 18, 2010</span>
+                <span class="category-tag">Uncategorized</span>
+                <span class="tag">Software configurations</span><span class="tag">software configuration</span><span class="tag">sharepoint</span><span class="tag">MOSS</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <p>I recently upgraded one of my Virtual PC windows 2003 servers to use Active Directory. The very first thing that happened after the upgrading was done was that I encountered tons of errors. Apparently the Active Directory installation process by windows did not automatically update the logon details to services. Hence as a result MOSS which relies on quite a lot of these services to funciton properly was pretty crippled. The first thing I did was to open the service dialogue box and change the logon details for the following services</p>
+<pre class="codehilite"><code>- **Windows Sharepoint services administration**
+- **Windows SharePoint Services Search**
+- **Windows SharePoint Services Timer**
+- **Windows SharePoint Services Tracing**
+- **Windows SharePoint Services VSS Writer**
+- **SQL Server 2005 Embedded Edition (Microsoft##SSEE)**
+- **SQL Server VSS Writer**
+</code></pre>
+
+<p>Apparently MOSS uses an embedded SQL server to store all its configuration as well as Web instances</p>
+<p>Next I had to do some configuration at the following location</p>
+<p><strong>Start &gt; Administration Tools &gt; Component Services &gt; Double Click to Open</strong></p>
+<p><strong>Console Root &gt; Component Services &gt; My Computer &gt; Right Click to Open Dialogue Box &gt; Open Properties</strong></p>
+<p>Navigate to Tab &gt; <strong>MSDTC </strong>and then click on the <strong>Security Configuration </strong>button</p>
+<p>Basically in that view click on all checkboxs and then indicate <strong>No Authentication Required</strong></p>
+<p>Once you click  ok the <strong>MSDTC service </strong>will restart itself.</p>
+<p>With that done, there is only one last thing to do.</p>
+<p>Go To Location <strong>C:\Windows\ </strong>right click on the <strong>Temp</strong> folder, click properties and then navigate to the <strong>Security </strong>Tab</p>
+<p>Even thought I have added Administrator and ASP.Net as the users with full control of this folder it seems it is still causing problems with some MOSS services, so I have instead given full control to Authenticated Users as well.</p>
+<p>Please note while all these configurations ensure that your sharepoint services gets up and running, it is not all together secured because of the lax security rules. If you really need help please hire a MOSS professional</p>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2024</p>
+        </footer>
+    </div>
+</body>
+</html>

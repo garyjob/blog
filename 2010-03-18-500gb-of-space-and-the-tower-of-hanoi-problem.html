@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="500Gb of space and the Tower of Hanoi Problem">
+    <title>500Gb of space and the Tower of Hanoi Problem - Gary Teh's Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>500Gb of space and the Tower of Hanoi Problem</h1>
+            <div class="post-meta">
+                <span class="post-date">March 18, 2010</span>
+                <span class="category-tag">Uncategorized</span>
+                
+            </div>
+        </div>
+
+        <div class="content">
+            <p>I happily went to <a href="http://thingstodosingapore.com/see-things/shop-for-electronics">Sim Lim Square</a> this afternoon to buy myself a 500GB internal hard disk for my laptop. One of them the Lenovo R60 has only 80 GB when it first came to me. I used up all the disk space within a short span of time for my software developement work.</p>
+<p>At first I was thinking probably I would use the Lenovo System as my testing server since most of my development work is now done on my NEC system.</p>
+<p>In Sim Lim Square I collected all the product brochures and went up to level 6 where it was less crowded to analyze the prices of internal hard disk of each store. I realized that <strong>level 5 unit 18 </strong>had the cheapest 2.5" Western Digital Hard Disk so I made my way there.</p>
+<p>I asked the shop keeper if he does help install hard disk. he said "Nay!" he only sells hard disk. He didnt seem very interested in anything else other than exchanging his wares for money. But he did mention once if I was sure my laptop could support up to 500GB. Truth was I didn't know. I told him about my lack of knowledge with regards to that and proceded to show him my laptop which I had in my bag.</p>
+<p>Still he proposed "<strong><em>do if at your own risk</em></strong>"</p>
+<p>Left without neither assistance nor expert opinion from him, the only thing I could thus do was to borrow a screw driver from him and to take out the hard disk of my laptop myself and attempt the best I could to determine if this hard disk would work on this laptop.</p>
+<p>Well they looked the same to me. I pondered for a while and it finally came to the moment of truth. What the hell, I took the bag that the 500GB hard disk was wrapped in and tore it open to extract the hard disk. Suddenly the shop keeper seemed visibly pissed.</p>
+<p>"Alrite you will have to pay now!"</p>
+<p>Well it is nice of him to ask for payment. Not wanting to get distracted from what I have in front of me I passed him the cash and concentrated on inserting the new hard disk into the Lenovo laptop. Alas, I realised the Lenovo laptop does not recognize the hard disk.</p>
+<p>Too bad then. I left the shop with my 500 Gb hard disk and laptop.</p>
+<p>Arriving home I decided to do an experiement with the hard disk and my NEC laptop. Well it detected the hard disk with no problem. One problem solved.</p>
+<p>I tried next to insert my 250GB from the NEC laptop to the Lenovo laptop. While the hard disk was successfully detected. The system failed to boot up using the existing operating system's configuration. It should be likely due to the clashes between the drivers installed on that hard disk clashing with the hardwares on that system. So if I just formatted that hard disk and reinstalled a fresh operating system on it, this 250Gb hard disk should work nicely with that Lenovo system.</p>
+<p>Hence another problem arised however. How do I go about migrating all the important documents and system installations from this 250GB to that 500GB disk without having the risk of experiencing having my hands caught in the event of contigencies?Aka a client calling up in the midst of all this requiring my technical support which I could only provide from my 250Gb disk, since the 500GB disk is not up and ready yet and would take quite a while to be ready.</p>
+<p>It seems like a <a href="http://en.wikipedia.org/wiki/Tower_of_Hanoi">Tower of Hanoi </a>problem to solve.</p>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2024</p>
+        </footer>
+    </div>
+</body>
+</html>

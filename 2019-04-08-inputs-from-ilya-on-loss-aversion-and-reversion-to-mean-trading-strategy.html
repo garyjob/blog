@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Inputs from Ilya on loss aversion and reversion to mean trading strategy">
+    <title>Inputs from Ilya on loss aversion and reversion to mean trading strategy - Gary Teh's Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>Inputs from Ilya on loss aversion and reversion to mean trading strategy</h1>
+            <div class="post-meta">
+                <span class="post-date">April 08, 2019</span>
+                <span class="category-tag">investing</span>
+                
+            </div>
+        </div>
+
+        <div class="content">
+            <ul>
+<li>
+<p>The key hypothesis: customers of established companies with short term negative sentiment are more sticky that assumed</p>
+<ul>
+<li>The key ratio of concern will be the Sharpe ratio measured by monthly average as well as yearly average</li>
+<li>To bench mark against S&amp;P index to figure out if there is in fact an Alpha when deploying such strategy</li>
+<li>Fund clients expect a returns during market down turns as well as during bull markets</li>
+<li>need to figure out how to avoid the buy trigger which will continuously trigger 2.5% losses during a period of market downturn.</li>
+<li>A good way to hedge and generate leverage would be to short the same amount on the S&amp;P index (SPY) every time you attempt buy into a position utilizing the strategy.</li>
+<li>Miscellaneous to take into account</li>
+</ul>
+<p>dividend paid out by S&amp;P index as well as any paid out by strategy</p>
+<p>Average dividend for the S&amp;P is 2%</p>
+<ul>
+<li>Standard deviation for S&amp;P versus strategy</li>
+</ul>
+<p>S&amp;P standard deviation is 0.9%</p>
+<ul>
+<li>Transactions cost</li>
+<li>borrowing cost for shorting S&amp;P during period</li>
+</ul>
+</li>
+</ul>
+<h3>Related references</h3>
+<pre class="codehilite"><code>- [Trading history](https://docs.google.com/spreadsheets/d/1_96bn2RYJdDVlbWKTVoL0Ru6vmeulft5rMUL_dxA0b8/edit?usp=sharing)
+- [Documentation on loss aversion and reversion to mean](https://garyteh.com/2018/04/trading-strategy-capitalizing-on-loss-aversion/)
+- [Link to signal dashboard on Slack](https://join.slack.com/t/getdataio/shared_invite/enQtNTg5MjMxNzY5OTM4LTc3MDg2ODdiNDNhYmZkNDExNDIzZWM3MTc0NDFiZDY2ZjIwYzA3MDRhYmM5M2UzZWQ0ZjA3YWMwOGRlNDA4ZDY)
+- [Quantitative momentum](https://garyteh.com/2019/03/book-summary-quantitative-momentum/)
+</code></pre>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2024</p>
+        </footer>
+    </div>
+</body>
+</html>

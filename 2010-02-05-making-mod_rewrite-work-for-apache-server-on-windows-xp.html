@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Making mod_rewrite work for Apache server on Windows XP">
+    <title>Making mod_rewrite work for Apache server on Windows XP - Gary Teh's Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>Making mod_rewrite work for Apache server on Windows XP</h1>
+            <div class="post-meta">
+                <span class="post-date">February 05, 2010</span>
+                <span class="category-tag">Uncategorized</span>
+                <span class="tag">free open source systems</span><span class="tag">web 2.0</span><span class="tag">Software configurations</span><span class="tag">apache web server</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <p>Last year I set up an Apache 2.2 server on my computer to do some developement work using EzPublish in multiple virtual host environment. One day, I happened to raise a question to Steven on how to get it configured so that mod_rewrite works on my server and I could debug my script locally instead of always having to test it on some remote server. I got the response from him that it does not work in Windows environment. Due to the fact that this particular feature was not critical to the whole operation, I left it as that.</p>
+<p>Two days ago out of curiosity, I downloaded this new PHP social networking software called ElGG . Apparently it uses mod_rewrite extensively and provides no other alternative methods to access its function. I was thus forced into a corner. Hence I did what I did. I went to google.com and started researching. Interestingly, I read that some actually got mod_rewrite working on Apache server running on Windows XP.</p>
+<p>I spent the next two days researching on the Apache architecture. The result I got was this assuming you already have multiple virtual host setup:</p>
+<pre class="codehilite"><code>- uncomment **LoadModule rewrite_module modules/mod_rewrite.so **in your **httpd.conf **file
+- add the following lines to your **vhost.conf **files
+</code></pre>
+
+<ul>
+<li>
+<h1>Tells your Apache webserver to detect for the .htaccess file in your directory*</h1>
+AllowOverride All<ul>
+<li>The below was copied lock stock and barrel from Joomla. Copy and paste it into a .htaccess file on your webserver and place it at the root location</li>
+</ul>
+</li>
+</ul>
+<h2></h2>
+<h1>@version $Id: htaccess.txt 10492 2008-07-02 06:38:28Z ircmaxell $</h1>
+<h1>@package Joomla</h1>
+<h1>@copyright Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.</h1>
+<h1>@license http://www.gnu.org/copyleft/gpl.html GNU/GPL</h1>
+<h1>Joomla! is Free Software</h1>
+<h2></h2>
+<h6></h6>
+<h1>READ THIS COMPLETELY IF YOU CHOOSE TO USE THIS FILE</h1>
+<h1></h1>
+<h1>The line just below this section: 'Options +FollowSymLinks' may cause problems</h1>
+<h1>with some server configurations.  It is required for use of mod_rewrite, but may already</h1>
+<h1>be set by your server administrator in a way that dissallows changing it in</h1>
+<h1>your .htaccess file.  If using it causes your server to error out, comment it out (add # to</h1>
+<h1>beginning of line), reload your site in your browser and test your sef url's.  If they work,</h1>
+<h1>it has been set by your server administrator and you do not need it set here.</h1>
+<h1></h1>
+<h6></h6>
+<h2>Can be commented out if causes errors, see notes above.</h2>
+<p>Options +FollowSymLinks</p>
+<h1></h1>
+<h1>mod_rewrite in use</h1>
+<p>RewriteEngine On</p>
+<h6>#### Begin - Rewrite rules to block out some common exploits</h6>
+<h2>If you experience problems on your site block out the operations listed below</h2>
+<h2>This attempts to block the most common type of exploit <code>attempts</code> to Joomla!</h2>
+<h1></h1>
+<h1>Block out any script trying to set a mosConfig value through the URL</h1>
+<p>RewriteCond %{QUERY_STRING} mosConfig_[a-zA-Z_]{1,21}(=|\%3D) [OR]</p>
+<h1>Block out any script trying to base64_encode crap to send via URL</h1>
+<p>RewriteCond %{QUERY_STRING} base64_encode.<em>(.</em>) [OR]</p>
+<h1>Block out any script that includes a  tag in URL</h1>
+<p>RewriteCond %{QUERY_STRING} (|%3E) [NC,OR]</p>
+<h1>Block out any script trying to set a PHP GLOBALS variable via URL</h1>
+<p>RewriteCond %{QUERY_STRING} GLOBALS(=|[|\%[0-9A-Z]{0,2}) [OR]</p>
+<h1>Block out any script trying to modify a _REQUEST variable via URL</h1>
+<p>RewriteCond %{QUERY_STRING} _REQUEST(=|[|\%[0-9A-Z]{0,2})</p>
+<h1>Send all blocked request to homepage with 403 Forbidden error!</h1>
+<p>RewriteRule ^(.*)$ index.php [F,L]</p>
+<h1></h1>
+<h6>#### End - Rewrite rules to block out some common exploits</h6>
+<h1>Uncomment following line if your webserver's URL</h1>
+<h1>is not directly related to physical file paths.</h1>
+<h1>Update Your Joomla! Directory (just / for root)</h1>
+<h1>RewriteBase /</h1>
+<h6>#### Begin - Joomla! core SEF Section</h6>
+<h1></h1>
+<p>RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/index.php
+RewriteCond %{REQUEST_URI} (/|.php|.html|.htm|.feed|.pdf|.raw|/[^.]<em>)$  [NC]
+RewriteRule (.</em>) index.php
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]</p>
+<h1></h1>
+<h6>#### End - Joomla! core SEF Section</h6>
+<p>If you are still having problems after all these steps <a href="http://name1price.com/index.php/contact-us.html">contact me</a>. I will help set it up for your nicely. :)</p>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2024</p>
+        </footer>
+    </div>
+</body>
+</html>

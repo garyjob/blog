@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Hypothesis on timing entry position into loss aversion">
+    <title>Hypothesis on timing entry position into loss aversion - Gary Teh's Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>Hypothesis on timing entry position into loss aversion</h1>
+            <div class="post-meta">
+                <span class="post-date">March 26, 2019</span>
+                <span class="category-tag">investing</span><span class="category-tag">psychology</span>
+                
+            </div>
+        </div>
+
+        <div class="content">
+            <p>This documentation is an extension on the strategy of <a href="https://garyteh.com/2018/04/trading-strategy-capitalizing-on-loss-aversion/">loss aversion and reversion to mean</a>. Its aim is to quantitatively identify the point in time when the effects of mass hysteria resultant from bad news has subsided.</p>
+<p>For clearer reading of signals, entry should be done at end of day instead of beginning of day.</p>
+<h3>Heuristics</h3>
+<pre class="codehilite"><code>- Only consider a purchase if there are funds available for deployment
+- Only consider companies with my circle of competence.
+- To mitigate intraday noise, only execute orders in the last hour of the trading day. Make sure spreads are narrow.
+- Only consider entry if the expected value for mean reversion of the company's industry is above 0.1
+- Only consider entry if the expected value for mean reversion of the company's industry is above 0.2
+- Large dip is qualified if RSI was below 30
+- Only enter when MACD histogram down trend receeds
+- Enter at historical support level
+- Exit at 5% capital gain
+- Stop loss at 2% capital loss
+</code></pre>
+
+<h3>Successful attempts</h3>
+<p>Listed below are 3 successful entry attempts during early 2019 where a 5% capital gain were captured.</p>
+<p>[caption id="attachment_3271" align="alignnone" width="1673"]<a href="https://garyteh.com/wp-content/uploads/2019/03/svmk_chart-2.jpg"><img alt="" src="https://garyteh.com/wp-content/uploads/2019/03/svmk_chart-2.jpg" /></a> SVMK trade entry on 15th Feb 2019[/caption]</p>
+<p>[caption id="attachment_3273" align="alignnone" width="1671"]<a href="https://garyteh.com/wp-content/uploads/2019/04/mdb_chart.jpg"><img alt="" src="https://garyteh.com/wp-content/uploads/2019/04/mdb_chart.jpg" /></a> MDB trade entry on 17th Jan 2019[/caption]</p>
+<p>[caption id="attachment_3276" align="alignnone" width="1674"]<a href="https://garyteh.com/wp-content/uploads/2019/04/tsla_chart.jpg"><img alt="" src="https://garyteh.com/wp-content/uploads/2019/04/tsla_chart.jpg" /></a> TSLA trade entry 5th March 2019[/caption]</p>
+<p>[caption id="attachment_3928" align="alignnone" width="1847"]<a href="https://garyteh.com/wp-content/uploads/2019/03/mdb-2.jpg"><img alt="" src="https://garyteh.com/wp-content/uploads/2019/03/mdb-2.jpg" /></a> MDB entry on 30th Sep 2019[/caption]</p>
+<p>The key characteristics of these entry were:</p>
+<pre class="codehilite"><code>- Dip classification
+
+&gt;10% drop in share price
+- Trading volume accompanying large dip should be at least **2.5X of 10 day moving average**
+- In 3 month time frame, RSI of previous day was in the oversold range of 
+- Entry
+
+In the **30 day chart**, sales volume is less than **10 day moving average**
+</code></pre>
+
+<p>Proper timing of entry could result in a lower denominator to work on for the targeted 5% gain. This would result in overall lower holding period in positions.</p>
+<h3>Failed attempt type 1: Entering too early</h3>
+<p>Depicted is an example of entering the position too early</p>
+<p><a href="https://garyteh.com/wp-content/uploads/2019/03/wba_mistake.jpg"><img alt="" src="https://garyteh.com/wp-content/uploads/2019/03/wba_mistake.jpg" /></a></p>
+<pre class="codehilite"><code>- Dip classification
+
+&gt;10% drop in share price
+- RSI of previous day was in the oversold range of 
+- Entry
+
+In the** 30 day chart,** negative sales volume was still more than the **10 day moving average**
+</code></pre>
+
+<h3>Failed attempt type 2: Trading companies with too recent IPO</h3>
+<p><a href="https://garyteh.com/wp-content/uploads/2019/03/lyft-1.jpg"><img alt="" src="https://garyteh.com/wp-content/uploads/2019/03/lyft-1.jpg" /></a></p>
+<pre class="codehilite"><code>- Dip classification
+
+&gt;10% drop in share price
+- **No RSI** available
+- In the** 30 day chart,** there was not enough data to plot the **10 day moving average**
+</code></pre>
+
+<p>To check if price recovery is due to covering of prior shorts</p>
+<h3>Failed attempt type 3: Trading companies with a steady and consistent down trend and negative fundamental news</h3>
+<p><a href="https://garyteh.com/wp-content/uploads/2019/05/FE611CE2-727A-4EC7-8DFF-D3520694E639.png"><img alt="" src="https://garyteh.com/wp-content/uploads/2019/05/FE611CE2-727A-4EC7-8DFF-D3520694E639.png" /></a></p>
+<pre class="codehilite"><code>- Dip classification
+
+&gt;10% gradual drop in share price
+- Continuous downtrends observed during 6 months, 3 months or 1 month window.
+</code></pre>
+
+<h3>Failed attempt type 4: Trading companies with a steady and consistent down trend and negative macro news</h3>
+<p><a href="https://garyteh.com/wp-content/uploads/2019/03/mu_trade_wars.jpg"><img alt="" src="https://garyteh.com/wp-content/uploads/2019/03/mu_trade_wars.jpg" /></a></p>
+<pre class="codehilite"><code>- Dip classification
+
+&gt;10% gradual drop in share price
+- Continuous downtrends observed during 6 months, 3 months or 1 month window.
+</code></pre>
+
+<h3>Failed attempt type 5: Trading companies with a steady and consistent down trend and negative macro news</h3>
+<p><a href="https://garyteh.com/wp-content/uploads/2019/03/weibo.jpg"><img alt="" src="https://garyteh.com/wp-content/uploads/2019/03/weibo.jpg" /></a></p>
+<pre class="codehilite"><code>- Dip classification
+
+&gt;10% sharpe drop in share price
+- Continuous downtrends observed during 6 months, 3 months or 1 month window.
+</code></pre>
+
+<h3>Related references</h3>
+<pre class="codehilite"><code>- [Trading strategy capitalizing on loss aversion and reversion to mean](https://garyteh.com/2018/04/trading-strategy-capitalizing-on-loss-aversion/), Gary Teh
+- [Swing trading for dummies](https://garyteh.com/2019/03/book-summary-swing-trading-for-dummies/)
+- [Quantitative momentum](https://garyteh.com/2019/03/book-summary-quantitative-momentum/)
+- [Short Interest checker](http://shortsqueeze.com/)
+- [IEX api - useful for pulling intra-day data](https://iextrading.com/developer/docs/)
+- *Swing trading for dummies*, Omar Bassal
+- [Probability theory: expected value](https://en.wikipedia.org/wiki/Expected_value)
+</code></pre>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2024</p>
+        </footer>
+    </div>
+</body>
+</html>

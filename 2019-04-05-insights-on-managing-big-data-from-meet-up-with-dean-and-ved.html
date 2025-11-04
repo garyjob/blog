@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Insights on managing Big Data from meet up with Dean and Ved">
+    <title>Insights on managing Big Data from meet up with Dean and Ved - Gary Teh's Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>Insights on managing Big Data from meet up with Dean and Ved</h1>
+            <div class="post-meta">
+                <span class="post-date">April 05, 2019</span>
+                <span class="category-tag">Machine Learning</span><span class="category-tag">Startups</span><span class="category-tag">Big Data</span><span class="category-tag">personal effectiveness</span><span class="category-tag">Venture Capital</span><span class="category-tag">Business models</span>
+                
+            </div>
+        </div>
+
+        <div class="content">
+            <h3>From Dean (Reputation.com)</h3>
+<pre class="codehilite"><code>- Enterprise sales as an acquisition strategy is feasible because revenue per account ranges in the USD millions - e.g. 70 million USD
+- Once an auto company like Ford or GM signs up, they will start bringing their dealerships in
+- The infrastructure needs to be able to support the size of the data which can be up to billions of rows
+- Scaling of infrastructure to handle load ever increasing data becomes critical for the continued growth of the data company
+- Data Product will appear broken when user attempts generate report while the data is still being written into the database
+- The key challenge is that different solution is suitable for different operation
+- Types of data operation include
+
+writing into the database
+- reading from the database
+- map reduce to generate custom view for data in the database to support different types of reporting for different departments in the client companies.
+
+- Successful data companies will create different layers of data management solutions to cater to the different data needs
+
+MongoDB
+
+good for storing relatively unstructured data
+- querying is slow
+- writing is slow
+- good for performing map reduce
+
+- Elastic Search
+
+good for custom querying for data
+
+- Dev ops become a very important role
+
+migration of data between different systems can extend up to weeks before completion
+- bad map-reduce query in codes while start causing bottlenecks in reading and writing causing the data product to fail
+- dev ops familiar with infrastructure might on occasion have to flush out all queries to reset
+- The key challenge is the inability to find bandwidth for flushing out bad queries within the codebase
+
+- Mistakes in hindsight
+
+In hindsight lumping all the data from different companies into the same index on MongoDB does not scale very well
+- Might make better sense to create separate database clusters for different clients
+
+- Day to day operations
+
+Hired a very large 100 strong Web Scraping company in India to make sure web-scrapers for customer reviews are constantly up
+- Clients occasionally will provide data which internal engineer (Austin) will need to look through before importing into relevant database
+
+- Need to increase revenue volume to gear up for IPO
+- The Catholic church has 10 times more money than Apple and owns a lot of health care companies.
+</code></pre>
+
+<h3>From Dan (Dharma.AI), the classmate of Ved</h3>
+<pre class="codehilite"><code>- Currently has 15 customers for their company
+- Customers prefer using their solution versus open source software because they can scale the volume of data to be digested and solution comes with SLA
+- Company provides web, mobile and table solutions which client companies' staff can use in the field to collect demographic and research data in developing countries
+- The key challenge is balancing between building features for the platform and building features specific verticals:
+
+Fields differ between industry: fields in the survey document for healthcare company will be very different for fields in the survey document for an auto company
+- Fields differ between across company size: survey format for one company might be different as compared to another in the same industry but of different size
+- Interface required is differs between companies
+
+- Original CEO has been forced to leave the company, new CEO was hired by PE firm to increase revenue volume to gear up for IPO
+</code></pre>
+
+<h3>From Ved</h3>
+<pre class="codehilite"><code>- As number of layers increase in the hierarchy, it becomes increasingly challenging for management to keep up to date on the actual situation in the market
+- New entrant of large establish competitor might sometime serve as an opportunity to ride the wave
+- when Google decided to repackage Google Docs for Education, it was a perfect opportunity for Edmodo to more tightly integrate into Google and ride that trend rather than being left behind
+- Failure to ride the wave will result in significant loss of market shares
+- It takes a lot of discipline to decide on just focusing on the core use case and constantly double down on it.
+- Knowing that a critical problem, which could potentially kill the company, exists versus successfully convincing everyone in the company that it is important to address it are two different things.
+</code></pre>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2024</p>
+        </footer>
+    </div>
+</body>
+</html>

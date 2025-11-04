@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A javascript decision on the use of jQuery on PHP Wordpress PHP (JSON, Raw HTML or Javascript)">
+    <title>A javascript decision on the use of jQuery on PHP Wordpress PHP (JSON, Raw HTML or Javascript) - Gary Teh's Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>A javascript decision on the use of jQuery on PHP Wordpress PHP (JSON, Raw HTML or Javascript)</h1>
+            <div class="post-meta">
+                <span class="post-date">January 30, 2011</span>
+                <span class="category-tag">Uncategorized</span>
+                
+            </div>
+        </div>
+
+        <div class="content">
+            <p>Recently, I have been focusing my programming efforts on mainly Poise.sg. Poise.Sg is built using WordPress as the backbone, the choice of which I stated in a <a href="http://blog.name1price.com/2011/01/choice-of-platform-for-a-new-concept/">previous article (choice of platform for a new concept)</a>. To date, my choice using wordpress has proven to be a sound one. I have been able to achieve the 3 following objects through the use of wordpress</p>
+<pre class="codehilite"><code>- Ensuring conformity in look and feel
+- Accomodate multiple different layouts
+- Maintain role based access control to specific views
+- Incorporating new external Javascript and PHP libraries into Wordpress as a plugin
+</code></pre>
+
+<p>Now as the project progresses, I am faced with a software architectural issue. This has to do with the way the jQuery library is ultilized. Due to the fact Poise.Sg is a heavily Ajaxed system, there are many instances of the client browser doing an off the screen call back to the server via an Ajax Post method.</p>
+<p>Due to the flexibility of the jQuery Library, there are three different methods available I could handle data transfer between the server and the client browser. They are</p>
+<pre class="codehilite"><code>- **To return raw HTML from the server and append the parent HTML DOM node via the method**
+</code></pre>
+
+<p>jQuery.post('server.php', {data:"something"}, function(data){
+//data is a raw HTML
+jQuery("#parentNodeID").append(data);
+})
+    - <strong>To return javascript, to be executed in the function that will handle the response data</strong>
+jQuery.post('server.php', {data:"something"}, function(data){
+//data is a series of javascript
+eval(data);
+})
+    - <strong>To JSON object to be interated in the function that will handle the response data</strong>
+jQuery.getJSON('server.php', {data:"something"}, function(data){
+//data is JSON Object and can be iterated through with a for loop
+jQuery(data).each(function(index){
+var value = jQuery(this).val()
+})
+})</p>
+<p>After having tried each method, I have come to realize there are Pros and Cons to each of the three methods.</p>
+<p><strong>Method 1 </strong>was is an easy and straightforward method to employ. However, it results in data and presentation being mixed in the response. A change presentation layout would translate into the need to go back and edit the codes sitting in the server end. It does not cater for the eventual possibility of data source reuse due to the tight coupling between data and presentation. The repercussion is the need to create a different ajax server method each time a server call needs to be made from a different view from the client end.</p>
+<p><strong>Method 2 </strong>is a somewhat less straightforward method to employ as compared to method one. It is a doubly bad option. Not only does it face the none data source reusability issue described in method 1, it also face the possibility of PHP introduced javascript error, in the event whereby PHP inserts invalid characters into the javascript string or integer location.</p>
+<p><strong>Method 3</strong> does allow for flexible reuser of data source, since the styling is handled at the client side Javascript level, while the server side is only responsible for generating valid JSON responses. This means multiple different views with drastically different layouts could share the use of the same data source. The only downside to this method is similar to the PHP introduced error as described in the method 2. The main difference is that instead of PHP introducing invalid characters to disrupt the javascripting, it introduces invalid characters in the value JSON fields thereby rendering the JSON response invalid.</p>
+<p>For the sake of system extensibility on Poise.sg, I opted for method 3. The down side is that while the content will be mainly user generated as similar to ThingsToDoSingapore.com, there will be instances when the result will not be displayed as generated by the user due to their use of invalid characters.</p>
+<p>These are my thoughts for today. Being the workaholic as I am, I have over the course of a few hours today (a Sunday) finished the search form on Poise.sg and will now take a break till tomorrow.</p>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2024</p>
+        </footer>
+    </div>
+</body>
+</html>

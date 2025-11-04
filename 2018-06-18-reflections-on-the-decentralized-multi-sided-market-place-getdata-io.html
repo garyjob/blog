@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Reflections on the decentralized multi-sided market place - GetData.IO">
+    <title>Reflections on the decentralized multi-sided market place - GetData.IO - Gary Teh's Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>Reflections on the decentralized multi-sided market place - GetData.IO</h1>
+            <div class="post-meta">
+                <span class="post-date">June 18, 2018</span>
+                <span class="category-tag">Machine Learning</span><span class="category-tag">Deep Learning</span><span class="category-tag">futurism</span><span class="category-tag">Startups</span><span class="category-tag">Big Data</span><span class="category-tag">investing</span>
+                
+            </div>
+        </div>
+
+        <div class="content">
+            <h3>The beginning</h3>
+<p>The concept of GetData.IO was first conceived back in November 2012. I was rewriting one of my side project (ThingsToDoSingapore.com) in NodeJS back then. Part of the rewrite required that I wrote up two separate crawlers each for a different site which I was getting data for.</p>
+<p>Very soon after I was done with the initial rewrite, I was once again compelled to write a third crawler when I wanted to buy some stocks on the Singapore stock exchange. I realized while the data for the shares were available on the site, they were not presented in a way that facilitated my decision making process. In addition to that, the other part of the data I needed were presented on a separate site and unsurprisingly not in the way I needed.</p>
+<p>I was on my way to write my fourth crawler when it occurred to me, if I structured my code by cleanly decoupling the declaration from underlying implementation details, it is possible to achieve a high level of code re-use.</p>
+<p>Two weekends of tinkering and frenzied coding later, I was able to complete the first draft of the <a href="https://getdata.io/docs/semantic-query-language/quick-start">Semantic Query Language</a> and the engine that would interpret this query language. I was in love. Using just simple JSON, it allowed anybody the ability to declare the desired data from any parts of web. This includes data scattered across multiple pages on the same site or data scattered across multiple domains which could be joined using unique keywords.</p>
+<h3>The Journey</h3>
+<p>Five years have past since, during this time, I brought this project through an incubator in Singapore with my ex-co-founder, tore out and rewritten major parts of the code-base that did not scale well, banged my head countless times on the wall  in frustration due to problems with the code and with product market fit, watched a bunch of well-funded entrants came and went. To be honest, quite a few times I threw in the towel. Always, the love for this idea would call out to me and draw me back to it. I picked up the towel and continued ploughing.</p>
+<p>It’s now June 2018. Though it has taken quite a while, I am now here in the Bay Area, the most suitable home for this project given to the density of technological startups in this region. My green card was finally approved last month. I have accumulated enough runway to allow my full attention on this project for the next 10 years. Its time to look forward.</p>
+<h3>The vision</h3>
+<p>The vision of this project is a multi-sided market place enabled by a Turing complete <a href="https://getdata.io/docs/semantic-query-language/quick-start">Semantic Query Language</a>. The <a href="https://getdata.io/docs/semantic-query-language/quick-start">Semantic Query Language</a> will be interpreted and executed upon by a fully decentralized data harvesting platform that will the capacity to gather data from more than 50% of the world’s websites on a daily basis.</p>
+<p>Members can choose to participate in this data sharing community by playing one or more of the 4 roles:</p>
+<pre class="codehilite"><code>- Members who need data
+- Members who maintain the data declarations
+- Members’ who will run instances of the [Semantic Query Language](https://getdata.io/docs/semantic-query-language/quick-start) interpreter on their servers to mine for data
+- Member’s who sell their own proprietary data
+</code></pre>
+
+<p>From this vantage point, given its highly decentralized nature, it feels appropriate to deploy the use of block chains. The final part that needs to be sorted out prior to the deployment of blockchain to operate in full decentralized mode is figure out the “proof of work”.</p>
+<p><a href="https://modern-sql.com/feature/listagg">Operations available</a> in other database technologies will get ported over where appropriate as and when we encounter relevant use cases surfaced by our community members.</p>
+<h3>Why now and how is it important?</h3>
+<p>More as I dwell in this space, I see very clearly why it is only going to become increasingly important to have this piece of infrastructure in place. There are namely 3 reasons for this.</p>
+<h4>Leveling the playing field</h4>
+<p>The next phase of our computing will rely very heavily on machine learning. It is a very data intensive activity. Given that established data siren's like Facebook, Google, Amazon and Microsoft have over the past years aggregated huge tons of data, this have given them a huge unfair advantage which might not necessarily be good for the eco-system. We need to level the playing field by making it possible for other startups to gain easy access to training data for their machine learning work.</p>
+<h4>Concerns about data ownership</h4>
+<p>GDPR is a cumulation of concerns of data ownership that has been building for the past 10 years. People will increasing want to establish ownership and control over their own data, independent of the data siren's use to house them. This means a decentralized infrastructure which people can trust to manage their own data.</p>
+<h4>Increasing world-wide need for computing talents</h4>
+<p>Demand for engineering talent will only continue to increase as the pervasiveness of computing in our lives increase. The supply of engineering talents does not seem like it will be catching up and short fall is projected to continue widening till 2050. A good signal is the increasingly high premium paid to engineering talents in the form of salaries over the recent years. It's just plain stupidity as a civilization to <a href="https://www.google.com/search?q=freelancer+webscraping&amp;oq=freelancer+webscraping&amp;aqs=chrome..69i57j0l3.4670j0j4&amp;sourceid=chrome&amp;ie=UTF-8">devote major portions of this precious engineering resource</a> to the writing and rewriting of web crawlers for the same data sources over and over again. Their time should be freed up to do more important things.</p>
+<h4>The first inning</h4>
+<p>Based on historical observation, I believe we are on the cusp of the very first inning in this space. A good comparison to draw upon is the early days of online music streaming.</p>
+<p>Napster versus the music publishers is similar to how the lay of the land was back 5 years ago when Craigslist was able to successfully sue 3Tap.</p>
+<p>Last year, LinkedIn lost the law suit against folks who were scraping public data. This is a very momentous inflection point in this space. Even the government is starting to the conclusion that public data is essentially public and Data Siren’s like any of the big Tech should have no monopoly over data that essentially belongs to the users who generated them.</p>
+<p>Drawing further upon on the music industry analogy, the future of this space should look like how Spotify and ITunes operate in the modern day online music scene</p>
+<h3>What about recumbents?</h3>
+<p>...</p>
+<h3>Further readings</h3>
+<pre class="codehilite"><code>- [How to launch an ICO ](https://medium.com/swlh/how-to-launch-an-initial-coin-offering-7fa000ba3f59)
+- [Modern SQL](https://modern-sql.com/)
+- [GetData.IO](https://getdata.io)
+</code></pre>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2024</p>
+        </footer>
+    </div>
+</body>
+</html>

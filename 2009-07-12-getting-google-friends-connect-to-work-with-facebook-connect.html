@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Getting Google Friends Connect to Work with FaceBook Connect">
+    <title>Getting Google Friends Connect to Work with FaceBook Connect - Gary Teh's Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>Getting Google Friends Connect to Work with FaceBook Connect</h1>
+            <div class="post-meta">
+                <span class="post-date">July 12, 2009</span>
+                <span class="category-tag">Uncategorized</span>
+                <span class="tag">Add new tag</span><span class="tag">php</span><span class="tag">paths</span><span class="tag">google friends connect api</span><span class="tag">facebook connect api</span><span class="tag">integration</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <p>It seeems getting <a href="http://www.google.com/support/forum/p/friendconnect/thread?tid=5ad9d086ad00a45c&amp;hl=en">facebook connect to work with google friends connect </a>has been a issue on the minds of most developers and not many of them has came up with an idea solution for it.</p>
+<p>After having attended the <a href="http://thingstodosingapore.com/see-things/Google-Hackathon-at-SMU">google hackathon </a>last month and witnessing how <a href="httphttp://wordpress.chanezon.com/?p=170">patrick </a>got it the two of them to work it got me experimenting with bringing facebook connect and google friends connect to work together for a while now. The site I am working on is <a href="http://thingstodosingapore.com/">Thing To Do Singapore</a>.</p>
+<p>Last night I was finally successful at getting the two of them to work together in a somewhat weird kind of way.</p>
+<p>Bascially Pages with GFC elements should not be introduced with FBML elements and vice a vice.  Such a way would cause it to clash. However since authentication for facebook results in a session storing on the server, one possible method for implementing the two on the same system could be via ajax.</p>
+<p>On <a href="http://thingstodosingapore.com/">Things to Do Singapore</a> the default log in is Google Friends Connect. On another page <a href="http://thingstodosingapore.com/facebook/">http://thingstodosingapore.com/facebook/</a> user can log into their facebook accounts using facebook connect.</p>
+<p>So once both of these are done, in the event the user generates some contents on the default page, 3 things will happen.</p>
+<pre class="codehilite"><code>- their facebook status will be updated
+- their google friend's connect activity will be updated
+-  the twitter main account [ThingsToDoSg ](http://twitter.com/thingstodosg)will be updated.
+</code></pre>
+
+<p>Additional events that might happen. Suppose the user declares that this entry has more details in a specific blog. The server will automatically do a ping back once the on the server with the blog entry.</p>
+<p>In short I am attempting to position <a href="http://thingstodosingapore.com/">Things To Do Singapore</a> as both and aggregator and a disseminator.</p>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2024</p>
+        </footer>
+    </div>
+</body>
+</html>

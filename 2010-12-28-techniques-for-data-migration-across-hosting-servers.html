@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Techniques for data migration across hosting servers">
+    <title>Techniques for data migration across hosting servers - Gary Teh's Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>Techniques for data migration across hosting servers</h1>
+            <div class="post-meta">
+                <span class="post-date">December 28, 2010</span>
+                <span class="category-tag">Uncategorized</span>
+                
+            </div>
+        </div>
+
+        <div class="content">
+            <p>Just these few days I had the opportunity to handle the migration of data for a few web sites. Some were running on the fat cow server. Others were running on the host hi server. All of them were to be ported over to the Vodien server.</p>
+<p>The fatcow server has over the past few months proved to be a disappointment, while the hosthi server has all along been a disappointment. Often do I get complains from customers that there web servers are either not loading or their sub domains are showing errors. Come next year I will allow both the fatcow and hosthi accounts to expire. I guess the moral of the story is that if some service providers promise unlimited something, there must seriously be a limited something else somewhere.</p>
+<p>While migration of files across servers are easy, the migration of databases and email accounts are somewhat more complicated.</p>
+<p><strong>Large MySQL Database migration process</strong></p>
+<p>There is an instance where I had to migrated a database that is 100mb in size. To do so via the standard database admin panel called the phpmyadmin would have took forever. Hence I wrote a php script that to fetch a file via a handle
+$fp = fopen("databasedata.sql", "r+");</p>
+<p>instead of reading in the whole file at one shot.
+file_get_contents("databasedata.sql");</p>
+<p>The latter method would have used up all the allocated resources in a normal php installation unless of course I went ahead and changed the configuration in my php.ini file. However this latter method is not at all a very elegant method to handle the task.</p>
+<p>To further expound  on the prior method, I coded the script to parse the $fp  stream line by line and consolidate them into one big line everytime the latest line does not end with the string chunk  ";\r\n". In the event this chunk was detected, I will that this consolidated line and execute them to the database.
+while (!feof($fp) &amp;&amp; $counter
+$query .="\r\n".trim(fgets($fp));
+if(substr($query, -1) ==";"){
+ //echo "query = ".$query;
+ connect_query($query);
+ $query = "";
+ //$name = fgets(STDIN);
+}
+}
+while (!feof($fp) &amp;&amp; $counter execute_query($query);</p>
+<p>$query = "";</p>
+<p>}</p>
+<p>}</p>
+<p>Lastly to free up unnecessary resources, I closed the stream $fp which I did not need to use anymore.</p>
+<p>fclose($fp);</p>
+<p>var_dump($myvar);
+Thus the problem of database migration is solved easily with minimal throughput required on the web server. Of course, if I had configured my php installation, it is possible to run it from the command line.</p>
+<p><strong>Email Account Migration from webmail to google mail server.</strong>
+This is another tricky situation I had to resolve. Apparently one of my clients used her webmail account rather extensively. In her webmail account she created various folders in which to store her emails. She wants all her mails migrated over to the new Google Mail server and at the same time have her email folder structure preserved.</p>
+<p>What I did to fulfill this requirement was to create an imap stream to the server the original webmail account lies on to retrieve all the folders. Since I have not configurated her webmail to use any security ticket I added the line <strong>novalidate-cert</strong>. This line is very important and I noticed quite a lot of developers faced this problem when try to access their webmail via the use of PHP scripting.</p>
+<p>set_time_limit (600000);
+$mbox = imap_open("{imap.yourwebhosting.com:143/novalidate-cert}", "userid@somedomainname.com", "password");</p>
+<p>$folders = imap_listmailbox($mbox, "{yourwebhosting.com:143}", "*");</p>
+<p>For each respective folders that exist, I created an imap stream call to retrieve all her emails. For each respective email, I retrieved all the header information, subject and email content and reconstructed an email packet.</p>
+<p>Next due to the fact that the google mail server has been configured to block all emails from sources with a domain name,  ip address mismatch, I had to create another email account (<strong>Account B</strong>) somewhere else so that I could send my mails to from my local web server. There after I configured the new google email account to retrieve those mails from <strong>Account B.</strong></p>
+<p>This in a nut shell is how I migrated both the database and the email accounts.</p>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2024</p>
+        </footer>
+    </div>
+</body>
+</html>
