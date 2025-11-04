@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gary Teh's Blog Archive</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <style>
         * {
             margin: 0;
@@ -99,6 +102,30 @@
             text-align: center;
             color: #7f8c8d;
         }
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        .profile-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #3498db;
+        }
+        .profile-info h2 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.5em;
+        }
+        .profile-info p {
+            margin: 5px 0 0 0;
+            color: #7f8c8d;
+        }
         .search-box {
             margin-bottom: 30px;
         }
@@ -133,7 +160,14 @@
 <body>
     <div class="container">
         <header>
-            <h1>📝 Gary Teh's Blog Archive</h1>
+            <div class="profile-section">
+                <img src="profile.jpg" alt="Gary Teh" class="profile-image">
+                <div class="profile-info">
+                    <h2>Gary Teh</h2>
+                    <p>Entrepreneur • Technologist • Blogger</p>
+                </div>
+            </div>
+            <h1>📝 Blog Archive</h1>
             <p class="subtitle">Personal writings on startups, investing, technology, and life reflections</p>
         </header>
 
