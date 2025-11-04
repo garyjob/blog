@@ -1,0 +1,29 @@
+# Blog Archive
+# All blog posts are stored as markdown files at the root level
+# Exported from WordPress - 816 posts from 2009 to 2024
+
+title: Gary Teh's Blog Archive
+description: Personal blog covering startups, investing, machine learning, and life reflections
+url: "https://garyjob.github.io"
+baseurl: "/blog"
+
+# Jekyll settings
+markdown: kramdown
+permalink: /:year/:month/:day/:title.html
+
+# Include all markdown files in root
+include:
+  - "*.md"
+
+# Don't process these
+exclude:
+  - README.md
+  - MIGRATION_GUIDE.md
+
+# Default layout for all pages
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
