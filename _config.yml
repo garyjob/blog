@@ -6,3 +6,4 @@
 title: Gary Teh's Blog Archive
 description: Personal blog covering startups, investing, machine learning, and life reflections
 url: "https://garyteh.com"
+baseurl: ""
