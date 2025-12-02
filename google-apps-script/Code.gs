@@ -78,9 +78,80 @@ function doGet() {
   }
   
   // Authorized - serve the app
-  return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('AI Blog Drafter for Garyteh.com')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  try {
+    return HtmlService.createHtmlOutputFromFile('Index')
+      .setTitle('AI Blog Drafter for Garyteh.com')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  } catch (e) {
+    // If HTML file not found, return helpful error message
+    Logger.log('Error loading Index.html: ' + e.toString());
+    return HtmlService.createHtmlOutput(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Setup Required - AI Blog Drafter</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              text-align: center;
+              padding: 50px;
+              background: #f5f5f5;
+            }
+            .error-box {
+              max-width: 600px;
+              margin: 0 auto;
+              background: white;
+              padding: 40px;
+              border-radius: 8px;
+              box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+            h1 { color: #e74c3c; margin-bottom: 20px; }
+            code {
+              background: #f4f4f4;
+              padding: 2px 6px;
+              border-radius: 3px;
+              font-family: 'Courier New', monospace;
+            }
+            ol {
+              text-align: left;
+              margin: 20px 0;
+            }
+            li {
+              margin: 10px 0;
+            }
+            .highlight {
+              background: #fff3cd;
+              padding: 15px;
+              border-radius: 5px;
+              margin: 20px 0;
+              border-left: 4px solid #ffc107;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="error-box">
+            <h1>⚠️ HTML File Not Found</h1>
+            <p>The HTML file named <code>Index</code> is missing from your Apps Script project.</p>
+            <div class="highlight">
+              <p><strong>To fix this:</strong></p>
+              <ol>
+                <li>Go to <a href="https://script.google.com" target="_blank">script.google.com</a></li>
+                <li>Open your Apps Script project</li>
+                <li>Click the <strong>+</strong> button next to "Files" (top left)</li>
+                <li>Select <strong>HTML</strong></li>
+                <li>Name it exactly: <code>Index</code> (capital I, no .html extension)</li>
+                <li>Copy the contents from <code>Index.html</code> in your local repository</li>
+                <li>Paste into the HTML file in Apps Script</li>
+                <li>Click <strong>Save</strong></li>
+                <li>Refresh this page</li>
+              </ol>
+            </div>
+            <p><small>Error: ${escapeHtml(e.toString().substring(0, 200))}</small></p>
+          </div>
+        </body>
+      </html>
+    `);
+  }
 }
 
 // ============================================================================
@@ -261,9 +332,145 @@ function callGrok(prompt, history) {
 // ============================================================================
 
 /**
+ * Converts markdown/plain text to HTML
+ * @param {string} text - Markdown or plain text content
+ * @return {string} HTML formatted content
+ */
+function convertToHTML(text) {
+  if (!text) return '';
+  
+  let html = text;
+  
+  // Convert code blocks first (before other processing)
+  const codeBlocks = [];
+  html = html.replace(/```([\s\S]*?)```/g, function(match, code) {
+    const id = 'CODE_BLOCK_' + codeBlocks.length;
+    codeBlocks.push('<pre><code>' + escapeHtml(code.trim()) + '</code></pre>');
+    return id;
+  });
+  
+  // Convert inline code
+  html = html.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  
+  // Convert headers
+  html = html.replace(/^### (.*)$/gim, '<h3>$1</h3>');
+  html = html.replace(/^## (.*)$/gim, '<h2>$1</h2>');
+  html = html.replace(/^# (.*)$/gim, '<h1>$1</h1>');
+  
+  // Convert bold (**text** or __text__) - but not inside code
+  html = html.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/__([^_\n]+)__/g, '<strong>$1</strong>');
+  
+  // Convert italic (*text* or _text_) - but not inside code
+  html = html.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
+  html = html.replace(/(?<!_)_([^_\n]+)_(?!_)/g, '<em>$1</em>');
+  
+  // Convert links [text](url)
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  
+  // Convert blockquotes
+  html = html.replace(/^> (.+)$/gim, '<blockquote>$1</blockquote>');
+  
+  // Convert horizontal rules
+  html = html.replace(/^---$/gm, '<hr>');
+  html = html.replace(/^\*\*\*$/gm, '<hr>');
+  
+  // Process lists - split by lines first
+  const lines = html.split('\n');
+  const processedLines = [];
+  let inList = false;
+  let listType = null; // 'ul' or 'ol'
+  let listItems = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    
+    // Check for unordered list item
+    const ulMatch = trimmed.match(/^[\*\-\+] (.+)$/);
+    // Check for ordered list item
+    const olMatch = trimmed.match(/^\d+\. (.+)$/);
+    
+    if (ulMatch) {
+      if (!inList || listType !== 'ul') {
+        // Close previous list if any
+        if (inList) {
+          processedLines.push('</' + listType + '>');
+        }
+        processedLines.push('<ul>');
+        inList = true;
+        listType = 'ul';
+      }
+      processedLines.push('<li>' + ulMatch[1] + '</li>');
+    } else if (olMatch) {
+      if (!inList || listType !== 'ol') {
+        // Close previous list if any
+        if (inList) {
+          processedLines.push('</' + listType + '>');
+        }
+        processedLines.push('<ol>');
+        inList = true;
+        listType = 'ol';
+      }
+      processedLines.push('<li>' + olMatch[1] + '</li>');
+    } else {
+      // Not a list item
+      if (inList) {
+        processedLines.push('</' + listType + '>');
+        inList = false;
+        listType = null;
+      }
+      processedLines.push(line);
+    }
+  }
+  
+  // Close any open list
+  if (inList) {
+    processedLines.push('</' + listType + '>');
+  }
+  
+  html = processedLines.join('\n');
+  
+  // Restore code blocks
+  codeBlocks.forEach((block, index) => {
+    html = html.replace('CODE_BLOCK_' + index, block);
+  });
+  
+  // Convert paragraphs - split by double newlines
+  const paragraphs = html.split(/\n\n+/);
+  html = paragraphs.map(para => {
+    para = para.trim();
+    if (!para) return '';
+    
+    // If it's already a block element, don't wrap
+    if (/^<(h[1-6]|ul|ol|pre|blockquote|hr|p)/.test(para)) {
+      return para;
+    }
+    
+    // Convert single newlines to <br> within paragraphs
+    para = para.replace(/\n/g, '<br>');
+    
+    // Wrap in <p> tag
+    return '<p>' + para + '</p>';
+  }).join('\n\n');
+  
+  // Clean up empty paragraphs
+  html = html.replace(/<p>\s*<\/p>/g, '');
+  html = html.replace(/<p><\/p>/g, '');
+  
+  // If no HTML tags were created, wrap everything in paragraphs
+  if (!/<(p|h[1-6]|ul|ol|pre|blockquote|hr)/.test(html)) {
+    const lines = html.split('\n').filter(l => l.trim());
+    html = lines.map(line => '<p>' + line.trim() + '</p>').join('\n');
+  }
+  
+  return html;
+}
+
+/**
  * Generates HTML for a blog post using cached template
  * @param {string} title - Post title
- * @param {string} content - Post content (HTML)
+ * @param {string} content - Post content (markdown or plain text, will be converted to HTML)
  * @param {string} date - Post date (YYYY-MM-DD)
  * @param {Array} categories - Array of category strings
  * @return {string} Complete HTML for the post
@@ -299,6 +506,11 @@ function generatePostHTML(title, content, date, categories) {
     ).join('\n                ');
   }
   
+  // Convert content to HTML if it's not already
+  // Check if content already contains HTML tags
+  const hasHTMLTags = /<[a-z][\s\S]*>/i.test(content);
+  const htmlContent = hasHTMLTags ? content : convertToHTML(content);
+  
   // Replace placeholders in template
   let html = template
     .replace(/{{TITLE}}/g, escapeHtml(title))
@@ -306,7 +518,7 @@ function generatePostHTML(title, content, date, categories) {
     .replace(/{{DATE}}/g, formattedDate)
     .replace(/{{DATE_ISO}}/g, date)
     .replace(/{{CATEGORIES}}/g, categoryTags)
-    .replace(/{{CONTENT}}/g, content);
+    .replace(/{{CONTENT}}/g, htmlContent);
   
   return html;
 }
@@ -374,6 +586,9 @@ function getDefaultTemplate() {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{{DESCRIPTION}}">
     <title>{{TITLE}} - Gary Teh's Blog</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <style>
         * {
             margin: 0;
@@ -526,6 +741,9 @@ function getDefaultTemplate() {
             <p>© Gary Teh • 2009-2025</p>
         </footer>
     </div>
+    
+    <!-- Mailchimp Newsletter Signup -->
+    <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/f4002ef7c62ee64494321ba14/9c56fa20706b0138cf6fea672.js");</script>
 </body>
 </html>`;
 }
@@ -622,7 +840,331 @@ function getGitHubFileSHA(path) {
 }
 
 /**
- * Updates index.html with new post entry
+ * Regenerates index.html from all blog posts
+ * This is more reliable than trying to parse and modify existing HTML
+ * @return {string} Complete index.html content
+ */
+function regenerateIndexHTML() {
+  Logger.log('Regenerating index.html from all posts...');
+  
+  try {
+    // Get all blog post filenames
+    const postFilenames = listBlogPosts();
+    Logger.log('Found ' + postFilenames.length + ' blog posts');
+    
+    // Fetch and parse all posts
+    const posts = [];
+    for (let i = 0; i < postFilenames.length; i++) {
+      const filename = postFilenames[i];
+      try {
+        const postData = extractPostMetadata(filename);
+        if (postData) {
+          posts.push(postData);
+        }
+      } catch (e) {
+        Logger.log('Error parsing post ' + filename + ': ' + e.toString());
+        // Continue with other posts
+      }
+    }
+    
+    Logger.log('Successfully parsed ' + posts.length + ' posts');
+    
+    // Sort posts by date (newest first)
+    posts.sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateB - dateA; // Descending order
+    });
+    
+    // Group posts by year
+    const postsByYear = {};
+    posts.forEach(post => {
+      const year = post.year;
+      if (!postsByYear[year]) {
+        postsByYear[year] = [];
+      }
+      postsByYear[year].push(post);
+    });
+    
+    // Get years in descending order
+    const years = Object.keys(postsByYear).sort((a, b) => parseInt(b) - parseInt(a));
+    
+    Logger.log('Posts grouped into ' + years.length + ' years');
+    
+    // Generate the index.html
+    return generateIndexHTMLFromPosts(posts, postsByYear, years);
+    
+  } catch (e) {
+    Logger.log('Error regenerating index.html: ' + e.toString());
+    throw new Error('Failed to regenerate index.html: ' + e.message);
+  }
+}
+
+/**
+ * Extracts metadata from a blog post file
+ * @param {string} filename - Post filename
+ * @return {Object} Post metadata {title, date, categories, filename, year}
+ */
+function extractPostMetadata(filename) {
+  try {
+    const postHTML = fetchGitHubFile(filename);
+    if (!postHTML) {
+      Logger.log('Post file not found: ' + filename);
+      return null;
+    }
+    
+    // Extract title
+    let title = '';
+    const titleMatch = postHTML.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+    if (titleMatch) {
+      title = titleMatch[1].trim();
+    } else {
+      const titleTagMatch = postHTML.match(/<title[^>]*>([^<]+)<\/title>/i);
+      if (titleTagMatch) {
+        title = titleTagMatch[1].replace(/\s*-\s*Gary Teh's Blog.*$/i, '').trim();
+      }
+    }
+    
+    // Extract date from filename or post
+    let date = '';
+    const filenameDateMatch = filename.match(/(\d{4}-\d{2}-\d{2})/);
+    if (filenameDateMatch) {
+      date = filenameDateMatch[1];
+    } else {
+      const dateMatch = postHTML.match(/<span class="post-date">([^<]+)<\/span>/i);
+      if (dateMatch) {
+        // Convert "November 04, 2025" to "2025-11-04"
+        const d = new Date(dateMatch[1]);
+        date = d.getFullYear() + '-' + 
+               String(d.getMonth() + 1).padStart(2, '0') + '-' + 
+               String(d.getDate()).padStart(2, '0');
+      }
+    }
+    
+    // Extract categories
+    const categories = [];
+    const categoryMatches = postHTML.matchAll(/<span class="category-tag">([^<]+)<\/span>/gi);
+    for (const match of categoryMatches) {
+      categories.push(match[1].trim());
+    }
+    
+    // Get year from date
+    const yearMatch = date.match(/^(\d{4})/);
+    const year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
+    
+    return {
+      title: title,
+      date: date,
+      categories: categories,
+      filename: filename,
+      year: year
+    };
+  } catch (e) {
+    Logger.log('Error extracting metadata from ' + filename + ': ' + e.toString());
+    return null;
+  }
+}
+
+/**
+ * Generates complete index.html from post data
+ * @param {Array} posts - All posts
+ * @param {Object} postsByYear - Posts grouped by year
+ * @param {Array} years - Years in descending order
+ * @return {string} Complete index.html content
+ */
+function generateIndexHTMLFromPosts(posts, postsByYear, years) {
+  // Get the header and footer from existing index.html (or use template)
+  const existingIndex = fetchGitHubFile('index.html');
+  let headerHTML = '';
+  let footerHTML = '';
+  let stylesHTML = '';
+  
+  if (existingIndex) {
+    // Extract styles (everything between <style> and </style>)
+    const styleMatch = existingIndex.match(/(<style>[\s\S]*?<\/style>)/);
+    if (styleMatch) {
+      stylesHTML = styleMatch[1];
+    }
+    
+    // Extract header (everything from <!DOCTYPE to before first year-section)
+    const headerMatch = existingIndex.match(/([\s\S]*?)(<div class="year-section)/);
+    if (headerMatch) {
+      headerHTML = headerMatch[1];
+      // Replace the styles in header with our extracted styles
+      headerHTML = headerHTML.replace(/<style>[\s\S]*?<\/style>/, stylesHTML);
+    }
+    
+    // Extract footer (everything after last year section closing div)
+    // Find the closing </div> tags and script section
+    const footerStart = existingIndex.lastIndexOf('    </div>');
+    if (footerStart > 0) {
+      footerHTML = existingIndex.substring(footerStart);
+    } else {
+      // Fallback: look for script tag
+      const scriptMatch = existingIndex.match(/(<script>[\s\S]*?<\/script>[\s\S]*?<\/body>[\s\S]*?<\/html>)/);
+      if (scriptMatch) {
+        footerHTML = scriptMatch[1];
+      }
+    }
+  }
+  
+  // If we couldn't extract, use defaults
+  if (!headerHTML) {
+    headerHTML = getDefaultIndexHeader();
+  }
+  if (!stylesHTML) {
+    stylesHTML = getDefaultIndexStyles();
+  }
+  if (!footerHTML) {
+    footerHTML = getDefaultIndexFooter();
+  }
+  
+  // Update stats in header
+  const oldestYear = years[years.length - 1] || new Date().getFullYear();
+  const newestYear = years[0] || new Date().getFullYear();
+  headerHTML = headerHTML.replace(
+    /<strong>(\d+) posts<\/strong>/,
+    `<strong>${posts.length} posts</strong>`
+  );
+  headerHTML = headerHTML.replace(
+    /spanning from \d{4} to \d{4}/,
+    `spanning from ${oldestYear} to ${newestYear}`
+  );
+  
+  // Generate year sections
+  let yearSectionsHTML = '';
+  years.forEach(year => {
+    const yearPosts = postsByYear[year];
+    const postCount = yearPosts.length;
+    
+    yearSectionsHTML += `\n        <div class="year-section" data-year="${year}">\n`;
+    yearSectionsHTML += `            <h2 class="year-header">${year} <span style="font-size: 0.6em; color: #95a5a6;">(${postCount} posts)</span></h2>\n`;
+    
+    yearPosts.forEach((post, index) => {
+      const isFirst = index === 0;
+      const featuredClass = isFirst ? ' featured-post' : '';
+      const featuredBadge = isFirst ? '<span class="featured-badge">NEW</span>' : '';
+      
+      const titleLower = post.title.toLowerCase();
+      const categoriesLower = post.categories.map(c => c.toLowerCase()).join(', ');
+      const categoriesDisplay = post.categories.map(c => escapeHtml(c)).join(', ');
+      
+      yearSectionsHTML += `            <div class="post${featuredClass}" data-title="${escapeHtml(titleLower)}" data-categories="${escapeHtml(categoriesLower)}">\n`;
+      yearSectionsHTML += `                <div class="post-title"><a href="${escapeHtml(post.filename)}">${escapeHtml(post.title)}</a>${featuredBadge}</div>\n`;
+      yearSectionsHTML += `                <div class="post-meta">\n`;
+      yearSectionsHTML += `                    <span class="post-date">${post.date}</span>\n`;
+      yearSectionsHTML += `                    <span class="categories">• ${categoriesDisplay}</span>\n`;
+      yearSectionsHTML += `                </div>\n`;
+      yearSectionsHTML += `            </div>\n`;
+    });
+    
+    yearSectionsHTML += `        </div>\n`;
+  });
+  
+  // Combine everything
+  const fullHTML = headerHTML + yearSectionsHTML + footerHTML;
+  
+  Logger.log('Generated index.html with ' + posts.length + ' posts in ' + years.length + ' years');
+  return fullHTML;
+}
+
+/**
+ * Gets default index header HTML
+ */
+function getDefaultIndexHeader() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gary Teh's Blog Archive</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    ${getDefaultIndexStyles()}
+</head>
+<body>
+    <div class="container">
+        <a href="admin/" class="admin-link" title="Admin Panel - Blog Publisher">✏️ Admin</a>
+        <header>
+            <img src="header.jpg" alt="Gary Teh Header" class="header-banner">
+            <div class="profile-section">
+                <img src="profile.jpg" alt="Gary Teh" class="profile-image">
+                <div class="profile-info">
+                    <h2>Gary Teh</h2>
+                    <p>Nobody doing nothing in the middle of nowhere</p>
+                </div>
+            </div>
+            <h1>📝 Blog Archive</h1>
+            <p class="subtitle">Personal writings on startups, investing, technology, and life reflections</p>
+        </header>
+
+        <div class="stats">
+            <strong>0 posts</strong> spanning from 2009 to 2025 • 
+            Topics: AI, Startups, Machine Learning, Investing, Psychology, Macro Economics, and more
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Search posts by title or category..." onkeyup="filterPosts()">
+        </div>
+
+`;
+}
+
+/**
+ * Gets default index styles (simplified - should match existing)
+ */
+function getDefaultIndexStyles() {
+  return `<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        /* Add other styles as needed - this is a simplified version */
+    </style>`;
+}
+
+/**
+ * Gets default index footer HTML
+ */
+function getDefaultIndexFooter() {
+  return `    </div>
+    <script>
+        function filterPosts() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const posts = document.querySelectorAll('.post');
+            
+            posts.forEach(post => {
+                const title = post.getAttribute('data-title') || '';
+                const categories = post.getAttribute('data-categories') || '';
+                const matches = title.includes(filter) || categories.includes(filter);
+                post.style.display = matches ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>`;
+}
+
+/**
+ * Updates index.html with new post entry (DEPRECATED - use regenerateIndexHTML instead)
  * @param {string} indexContent - Current index.html content
  * @param {Object} postData - Post data {title, filename, date, categories, year}
  * @return {string} Updated index.html content
@@ -631,6 +1173,9 @@ function updateIndexHTML(indexContent, postData) {
   const year = postData.year;
   const postHTML = generatePostEntryHTML(postData);
   
+  Logger.log('Updating index.html for year: ' + year);
+  Logger.log('Post HTML length: ' + postHTML.length);
+  
   // Check if year section exists
   const yearPattern = new RegExp(
     `<div class="year-section" data-year="${year}">`,
@@ -638,39 +1183,132 @@ function updateIndexHTML(indexContent, postData) {
   );
   
   if (yearPattern.test(indexContent)) {
-    // Year exists - insert after year header
-    const insertPattern = new RegExp(
-      `(<div class="year-section" data-year="${year}">[\\s\\S]*?<h2 class="year-header">${year}[^<]*<span[^>]*>\\()(\\d+)( posts\\)</span>[\\s\\S]*?</h2>\\s*)`,
-      'i'
+    Logger.log('Year section exists for ' + year);
+    
+    // Find the year section start position
+    const yearSectionStart = indexContent.indexOf(`<div class="year-section" data-year="${year}">`);
+    if (yearSectionStart === -1) {
+      throw new Error('Year section found by pattern but not by indexOf for year ' + year);
+    }
+    
+    // Find the closing </h2> tag after the year header
+    // Escape parentheses properly - they're literal characters in the HTML
+    // Pattern: <h2 class="year-header">2025 <span ...>(1 posts)</span></h2>
+    // Use simpler pattern that matches the structure
+    const simpleHeaderMatch = indexContent.substring(yearSectionStart).match(
+      new RegExp(`<h2[^>]*>${year}[^<]*\\(\\s*(\\d+)\\s*posts\\)[^<]*</h2>`, 'i')
     );
     
-    indexContent = indexContent.replace(insertPattern, (match, p1, p2, p3) => {
-      const newCount = parseInt(p2) + 1;
-      return p1 + newCount + p3 + '\n            ' + postHTML;
-    });
+    if (!simpleHeaderMatch) {
+      Logger.log('Could not find year header pattern');
+      // Try even simpler pattern without span
+      const verySimpleMatch = indexContent.substring(yearSectionStart).match(
+        new RegExp(`<h2[^>]*>${year}[^<]*\\(\\s*(\\d+)\\s*posts\\)`, 'i')
+      );
+      if (!verySimpleMatch) {
+        Logger.log('ERROR: Could not find year header for ' + year);
+        Logger.log('Year section start: ' + yearSectionStart);
+        Logger.log('Substring preview: ' + indexContent.substring(yearSectionStart, yearSectionStart + 200));
+        throw new Error('Could not find year header for ' + year);
+      }
+      const currentCount = parseInt(verySimpleMatch[1]);
+      const newCount = currentCount + 1;
+      Logger.log('Found year header, current count: ' + currentCount + ', new count: ' + newCount);
+    } else {
+      const currentCount = parseInt(simpleHeaderMatch[1]);
+      const newCount = currentCount + 1;
+      Logger.log('Found year header, current count: ' + currentCount + ', new count: ' + newCount);
+      
+      // Find position after </h2>
+      const headerEnd = indexContent.indexOf('</h2>', yearSectionStart) + 5;
+      // Insert post after header, before first post div
+      const insertPosition = indexContent.indexOf('<div class="post', headerEnd);
+      if (insertPosition === -1) {
+        // No existing posts, insert before closing year-section div
+        const yearSectionEnd = indexContent.indexOf('</div>', headerEnd);
+        indexContent = indexContent.slice(0, headerEnd) + 
+                     '\n            ' + postHTML + '\n        ' +
+                     indexContent.slice(headerEnd);
+      } else {
+        indexContent = indexContent.slice(0, insertPosition) + 
+                     '\n            ' + postHTML + '\n            ' +
+                     indexContent.slice(insertPosition);
+      }
+      
+      // Update count in header
+      indexContent = indexContent.replace(
+        new RegExp(`(${year}[^<]*\\(\\s*)(\\d+)(\\s*posts\\)[^<]*</h2>)`, 'i'),
+        (m, p1, p2, p3) => p1 + newCount + p3
+      );
+    }
     
-    // Update post count in header
-    const countPattern = new RegExp(
-      `(${year} <span[^>]*>\\()(\\d+)( posts\\)</span>)`,
-      'i'
+    // Find position after </h2> (common for both paths)
+    const headerEnd = indexContent.indexOf('</h2>', yearSectionStart) + 5;
+    if (headerEnd === 4) { // indexOf returns -1, so -1 + 5 = 4
+      throw new Error('Could not find </h2> tag after year header');
+    }
+    
+    // Insert post after header, before first post div
+    const insertPosition = indexContent.indexOf('<div class="post', headerEnd);
+    if (insertPosition === -1) {
+      // No existing posts, insert before closing year-section div
+      Logger.log('No existing posts in year section, inserting at end');
+      const yearSectionEnd = indexContent.indexOf('</div>', headerEnd);
+      if (yearSectionEnd === -1) {
+        throw new Error('Could not find closing </div> for year section');
+      }
+      indexContent = indexContent.slice(0, headerEnd) + 
+                   '\n            ' + postHTML + '\n        ' +
+                   indexContent.slice(headerEnd);
+    } else {
+      Logger.log('Found existing posts, inserting before first post');
+      indexContent = indexContent.slice(0, insertPosition) + 
+                   '\n            ' + postHTML + '\n            ' +
+                   indexContent.slice(insertPosition);
+    }
+    
+    // Update count in header - try multiple patterns to be safe
+    // Pattern 1: with span tag
+    let countUpdated = indexContent.replace(
+      new RegExp(`(${year}[^<]*<span[^>]*>\\(\\s*)(\\d+)(\\s*posts\\)</span>)`, 'i'),
+      (m, p1, p2, p3) => {
+        Logger.log('Updated count using span pattern');
+        return p1 + newCount + p3;
+      }
     );
-    indexContent = indexContent.replace(countPattern, (match, p1, p2, p3) => {
-      return p1 + (parseInt(p2) + 1) + p3;
-    });
+    
+    // If pattern 1 didn't match, try pattern 2: without span
+    if (countUpdated === indexContent) {
+      countUpdated = indexContent.replace(
+        new RegExp(`(${year}[^<]*\\(\\s*)(\\d+)(\\s*posts\\)[^<]*</h2>)`, 'i'),
+        (m, p1, p2, p3) => {
+          Logger.log('Updated count using simple pattern');
+          return p1 + newCount + p3;
+        }
+      );
+    }
+    
+    indexContent = countUpdated;
+    
+    Logger.log('Successfully inserted post into year section');
     
   } else {
+    Logger.log('Year section does NOT exist for ' + year + ', creating new section');
+    
     // Year doesn't exist - create new year section
     // Find first year section and insert before it
     const firstYearPattern = /<div class="year-section" data-year="(\d{4})">/;
     const firstYearMatch = indexContent.match(firstYearPattern);
     
     if (firstYearMatch) {
+      Logger.log('Found first year section: ' + firstYearMatch[1]);
       const newYearSection = generateYearSectionHTML(postData);
       indexContent = indexContent.replace(
         firstYearPattern,
         newYearSection + '\n\n        '
       );
     } else {
+      Logger.log('No year sections found, appending to end');
       // No years exist - append before closing container
       const containerEnd = indexContent.lastIndexOf('    </div>');
       if (containerEnd > 0) {
@@ -688,8 +1326,16 @@ function updateIndexHTML(indexContent, postData) {
   if (statsMatch) {
     const newCount = parseInt(statsMatch[1]) + 1;
     indexContent = indexContent.replace(statsPattern, `<strong>${newCount} posts</strong>`);
+    Logger.log('Updated stats count to: ' + newCount);
   }
   
+  // Verify the post was inserted
+  if (indexContent.indexOf(postData.filename) === -1) {
+    Logger.log('WARNING: Post filename not found in updated index.html!');
+    throw new Error('Failed to insert post into index.html');
+  }
+  
+  Logger.log('Successfully updated index.html');
   return indexContent;
 }
 
@@ -731,7 +1377,7 @@ function generateYearSectionHTML(postData) {
 }
 
 /**
- * Commits files to GitHub
+ * Commits files to GitHub using Contents API (simpler and more reliable)
  * @param {Array} files - Array of {path, content, sha} objects
  * @param {string} message - Commit message
  * @return {Object} Commit result
@@ -746,120 +1392,296 @@ function commitToGitHub(files, message) {
     throw new Error('GITHUB_TOKEN not configured. Run setupProperties() first.');
   }
   
-  // Get current branch SHA
-  const branchUrl = `https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${branch}`;
-  const branchResponse = UrlFetchApp.fetch(branchUrl, {
-    headers: {
-      'Authorization': 'token ' + token,
-      'Accept': 'application/vnd.github.v3+json'
-    },
-    muteHttpExceptions: true
-  });
+  // Use Contents API to create/update files
+  // This API handles base64 encoding automatically and is simpler
+  const results = [];
   
-  if (branchResponse.getResponseCode() !== 200) {
-    throw new Error('Failed to get branch info');
-  }
-  
-  const branchData = JSON.parse(branchResponse.getContentText());
-  const baseTreeSHA = branchData.object.sha;
-  
-  // Get base tree
-  const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${baseTreeSHA}?recursive=1`;
-  const treeResponse = UrlFetchApp.fetch(treeUrl, {
-    headers: {
-      'Authorization': 'token ' + token,
-      'Accept': 'application/vnd.github.v3+json'
-    },
-    muteHttpExceptions: true
-  });
-  
-  if (treeResponse.getResponseCode() !== 200) {
-    throw new Error('Failed to get tree');
-  }
-  
-  const treeData = JSON.parse(treeResponse.getContentText());
-  
-  // Build new tree with updated files
-  const tree = files.map(file => ({
-    path: file.path,
-    mode: '100644',
-    type: 'blob',
-    sha: file.sha || null,
-    content: file.content ? Utilities.base64Encode(file.content) : null
-  }));
-  
-  // Create tree
-  const createTreeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees`;
-  const createTreeResponse = UrlFetchApp.fetch(createTreeUrl, {
-    method: 'post',
-    contentType: 'application/json',
-    headers: {
-      'Authorization': 'token ' + token,
-      'Accept': 'application/vnd.github.v3+json'
-    },
-    payload: JSON.stringify({
-      base_tree: baseTreeSHA,
-      tree: tree
-    }),
-    muteHttpExceptions: true
-  });
-  
-  if (createTreeResponse.getResponseCode() !== 201) {
-    const error = JSON.parse(createTreeResponse.getContentText());
-    throw new Error('Failed to create tree: ' + (error.message || 'Unknown error'));
-  }
-  
-  const newTreeSHA = JSON.parse(createTreeResponse.getContentText()).sha;
-  
-  // Create commit
-  const commitUrl = `https://api.github.com/repos/${owner}/${repo}/git/commits`;
-  const commitResponse = UrlFetchApp.fetch(commitUrl, {
-    method: 'post',
-    contentType: 'application/json',
-    headers: {
-      'Authorization': 'token ' + token,
-      'Accept': 'application/vnd.github.v3+json'
-    },
-    payload: JSON.stringify({
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(file.path)}`;
+    
+    // Base64 encode the content (Contents API requires this)
+    const encodedContent = Utilities.base64Encode(file.content);
+    
+    const payload = {
       message: message,
-      tree: newTreeSHA,
-      parents: [baseTreeSHA]
-    }),
-    muteHttpExceptions: true
-  });
-  
-  if (commitResponse.getResponseCode() !== 201) {
-    const error = JSON.parse(commitResponse.getContentText());
-    throw new Error('Failed to create commit: ' + (error.message || 'Unknown error'));
-  }
-  
-  const commitSHA = JSON.parse(commitResponse.getContentText()).sha;
-  
-  // Update branch reference
-  const updateRefUrl = `https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`;
-  const updateRefResponse = UrlFetchApp.fetch(updateRefUrl, {
-    method: 'patch',
-    contentType: 'application/json',
-    headers: {
-      'Authorization': 'token ' + token,
-      'Accept': 'application/vnd.github.v3+json'
-    },
-    payload: JSON.stringify({
-      sha: commitSHA
-    }),
-    muteHttpExceptions: true
-  });
-  
-  if (updateRefResponse.getResponseCode() !== 200) {
-    const error = JSON.parse(updateRefResponse.getContentText());
-    throw new Error('Failed to update branch: ' + (error.message || 'Unknown error'));
+      content: encodedContent,
+      branch: branch
+    };
+    
+    // If file exists (has SHA), include it for update
+    if (file.sha) {
+      payload.sha = file.sha;
+    }
+    
+    const response = UrlFetchApp.fetch(url, {
+      method: file.sha ? 'put' : 'put', // PUT works for both create and update
+      contentType: 'application/json',
+      headers: {
+        'Authorization': 'token ' + token,
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+    
+    const responseCode = response.getResponseCode();
+    const responseText = response.getContentText();
+    
+    Logger.log(`Committing file: ${file.path}, SHA: ${file.sha || 'new'}, Response code: ${responseCode}`);
+    
+    if (responseCode !== 200 && responseCode !== 201) {
+      Logger.log('Error response: ' + responseText);
+      // 200 = updated, 201 = created
+      const error = JSON.parse(responseText);
+      throw new Error(`Failed to ${file.sha ? 'update' : 'create'} file ${file.path}: ${error.message || 'Unknown error'}`);
+    }
+    
+    const result = JSON.parse(responseText);
+    results.push({
+      path: file.path,
+      sha: result.content.sha,
+      commit: result.commit
+    });
+    
+    Logger.log(`Successfully ${file.sha ? 'updated' : 'created'} ${file.path}`);
   }
   
   return {
     success: true,
-    commitSHA: commitSHA,
-    message: 'Post published successfully!'
+    commitSHA: results[0].commit.sha,
+    message: 'Post published successfully!',
+    files: results
   };
+}
+
+// ============================================================================
+// LIST BLOG POSTS
+// ============================================================================
+
+/**
+ * Fetches a list of all blog post filenames from the GitHub repository.
+ * @return {Array<string>} An array of filenames (e.g., ["2025-12-02-title.html", ...])
+ */
+function listBlogPosts() {
+  const token = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
+  const owner = PropertiesService.getScriptProperties().getProperty('GITHUB_OWNER') || 'garyjob';
+  const repo = PropertiesService.getScriptProperties().getProperty('GITHUB_REPO') || 'blog';
+  const branch = PropertiesService.getScriptProperties().getProperty('GITHUB_BRANCH') || 'main';
+  
+  if (!token || token === 'your-github-token-here') {
+    throw new Error('GITHUB_TOKEN not configured. Run setupProperties() first.');
+  }
+  
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/?ref=${branch}`;
+  
+  try {
+    const response = UrlFetchApp.fetch(url, {
+      headers: {
+        'Authorization': 'token ' + token,
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      muteHttpExceptions: true
+    });
+    
+    if (response.getResponseCode() === 200) {
+      const data = JSON.parse(response.getContentText());
+      // Filter for .html files that look like blog posts (YYYY-MM-DD-title.html)
+      const blogPosts = data
+        .filter(file => file.type === 'file' && file.name.match(/^\d{4}-\d{2}-\d{2}-.+\.html$/i))
+        .map(file => file.name);
+      
+      Logger.log('Found ' + blogPosts.length + ' blog post files in repository');
+      return blogPosts;
+    } else {
+      throw new Error('GitHub API error: ' + response.getResponseCode());
+    }
+  } catch (e) {
+    Logger.log('Error listing blog posts: ' + e.toString());
+    throw new Error('Failed to list blog posts from GitHub: ' + e.message);
+  }
+}
+
+// ============================================================================
+// LOAD EXISTING POST
+// ============================================================================
+
+/**
+ * Gets list of all published blog posts from index.html
+ * @return {Array} Array of {filename, title, date} objects
+ */
+function getPublishedPosts() {
+  try {
+    const indexContent = fetchGitHubFile('index.html');
+    if (!indexContent) {
+      return [];
+    }
+    
+    const posts = [];
+    
+    // Extract all post links from index.html
+    // Pattern: <div class="post-title"><a href="filename.html">Title</a> followed by date
+    // More flexible pattern to handle variations
+    const postPattern = /<div class="post[^"]*"[^>]*>[\s\S]*?<div class="post-title"><a href="([^"]+\.html)">([^<]+)<\/a>[\s\S]*?<span class="post-date">([^<]+)<\/span>/gi;
+    
+    let match;
+    while ((match = postPattern.exec(indexContent)) !== null) {
+      const filename = match[1];
+      let title = match[2].trim();
+      const date = match[3].trim();
+      
+      // Remove "NEW" badge if present
+      title = title.replace(/<span[^>]*>NEW<\/span>/gi, '').trim();
+      
+      posts.push({
+        filename: filename,
+        title: title,
+        date: date
+      });
+    }
+    
+    // If pattern didn't work, try simpler pattern
+    if (posts.length === 0) {
+      const simplePattern = /<a href="([^"]+\.html)">([^<]+)<\/a>/gi;
+      let simpleMatch;
+      while ((simpleMatch = simplePattern.exec(indexContent)) !== null) {
+        const filename = simpleMatch[1];
+        // Skip if it's index.html or admin/index.html
+        if (filename === 'index.html' || filename.includes('admin/')) {
+          continue;
+        }
+        // Try to extract date from filename
+        const dateMatch = filename.match(/(\d{4}-\d{2}-\d{2})/);
+        posts.push({
+          filename: filename,
+          title: simpleMatch[2].trim().replace(/<span[^>]*>.*?<\/span>/gi, '').trim(),
+          date: dateMatch ? dateMatch[1] : 'Unknown'
+        });
+      }
+    }
+    
+    // Sort by date (newest first) - dates are in YYYY-MM-DD format
+    posts.sort((a, b) => {
+      // Extract date from filename or use date field
+      const dateA = a.filename.match(/(\d{4}-\d{2}-\d{2})/);
+      const dateB = b.filename.match(/(\d{4}-\d{2}-\d{2})/);
+      if (dateA && dateB) {
+        return dateB[1].localeCompare(dateA[1]); // Descending (newest first)
+      }
+      return 0;
+    });
+    
+    Logger.log('Found ' + posts.length + ' published posts');
+    return posts;
+    
+  } catch (e) {
+    Logger.log('Error getting published posts: ' + e.toString());
+    return [];
+  }
+}
+
+/**
+ * Loads an existing blog post from GitHub for editing
+ * @param {string} filename - Post filename (e.g., "2025-12-02-title.html")
+ * @return {Object} Post data {title, content, categories, date, filename}
+ */
+function loadExistingPost(filename) {
+  try {
+    // Fetch the post file from GitHub
+    const postHTML = fetchGitHubFile(filename);
+    if (!postHTML) {
+      throw new Error('Post not found: ' + filename);
+    }
+    
+    // Extract title from <h1> or <title>
+    let title = '';
+    const titleMatch = postHTML.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+    if (titleMatch) {
+      title = titleMatch[1].trim();
+    } else {
+      const titleTagMatch = postHTML.match(/<title[^>]*>([^<]+)<\/title>/i);
+      if (titleTagMatch) {
+        title = titleTagMatch[1].replace(/\s*-\s*Gary Teh's Blog.*$/i, '').trim();
+      }
+    }
+    
+    // Extract content from <div class="content">
+    let content = '';
+    const contentMatch = postHTML.match(/<div class="content">([\s\S]*?)<\/div>\s*<footer/i);
+    if (contentMatch) {
+      content = contentMatch[1].trim();
+      // Convert HTML back to markdown-like text for editing
+      // Remove HTML tags but keep structure
+      content = content
+        .replace(/<p>/g, '')
+        .replace(/<\/p>/g, '\n\n')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<strong>(.*?)<\/strong>/g, '**$1**')
+        .replace(/<em>(.*?)<\/em>/g, '*$1*')
+        .replace(/<h2>(.*?)<\/h2>/g, '\n## $1\n')
+        .replace(/<h3>(.*?)<\/h3>/g, '\n### $1\n')
+        .replace(/<ul>[\s\S]*?<\/ul>/g, function(match) {
+          return match.replace(/<li>(.*?)<\/li>/g, '- $1\n');
+        })
+        .replace(/<ol>[\s\S]*?<\/ol>/g, function(match) {
+          let counter = 1;
+          return match.replace(/<li>(.*?)<\/li>/g, function() {
+            return counter++ + '. $1\n';
+          });
+        })
+        .replace(/<code>(.*?)<\/code>/g, '`$1`')
+        .replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/g, '```\n$1\n```')
+        .replace(/<a href="([^"]+)">([^<]+)<\/a>/g, '[$2]($1)')
+        .replace(/<[^>]+>/g, '') // Remove any remaining HTML tags
+        .replace(/\n{3,}/g, '\n\n') // Clean up multiple newlines
+        .trim();
+    }
+    
+    // Extract categories from category-tag spans
+    const categories = [];
+    const categoryMatches = postHTML.matchAll(/<span class="category-tag">([^<]+)<\/span>/g);
+    for (const match of categoryMatches) {
+      categories.push(match[1].trim());
+    }
+    
+    // Extract date from post-date span or filename
+    let date = '';
+    const dateMatch = postHTML.match(/<span class="post-date">([^<]+)<\/span>/i);
+    if (dateMatch) {
+      // Try to parse the date and convert to YYYY-MM-DD
+      const dateStr = dateMatch[1].trim();
+      const dateObj = new Date(dateStr);
+      if (!isNaN(dateObj.getTime())) {
+        date = dateObj.getFullYear() + '-' + 
+               String(dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+               String(dateObj.getDate()).padStart(2, '0');
+      }
+    }
+    
+    // If no date found, try to extract from filename
+    if (!date) {
+      const filenameDateMatch = filename.match(/(\d{4}-\d{2}-\d{2})/);
+      if (filenameDateMatch) {
+        date = filenameDateMatch[1];
+      }
+    }
+    
+    return {
+      success: true,
+      title: title,
+      content: content,
+      categories: categories,
+      date: date,
+      filename: filename
+    };
+    
+  } catch (e) {
+    Logger.log('Error loading post: ' + e.toString());
+    return {
+      success: false,
+      error: e.message
+    };
+  }
 }
 
 // ============================================================================
@@ -871,20 +1693,34 @@ function commitToGitHub(files, message) {
  * @param {string} title - Post title
  * @param {string} content - Post content (HTML)
  * @param {Array} categories - Array of category strings
+ * @param {string} existingFilename - Optional: filename of existing post to update
  * @return {Object} Result with success status and URL
  */
-function publishPost(title, content, categories) {
+function publishPost(title, content, categories, existingFilename) {
   try {
-    // Generate filename from title
-    const date = new Date();
-    const dateStr = date.getFullYear() + '-' + 
-                   String(date.getMonth() + 1).padStart(2, '0') + '-' + 
-                   String(date.getDate()).padStart(2, '0');
+    let filename;
+    let dateStr;
+    let isUpdate = false;
     
-    const slug = title.toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
-    const filename = `${dateStr}-${slug}.html`;
+    if (existingFilename) {
+      // Updating existing post
+      filename = existingFilename;
+      isUpdate = true;
+      // Extract date from filename
+      const dateMatch = filename.match(/(\d{4}-\d{2}-\d{2})/);
+      dateStr = dateMatch ? dateMatch[1] : new Date().toISOString().split('T')[0];
+    } else {
+      // Creating new post
+      const date = new Date();
+      dateStr = date.getFullYear() + '-' + 
+               String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+               String(date.getDate()).padStart(2, '0');
+      
+      const slug = title.toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+      filename = `${dateStr}-${slug}.html`;
+    }
     
     // Generate post HTML
     const postHTML = generatePostHTML(title, content, dateStr, categories);
@@ -895,18 +1731,8 @@ function publishPost(title, content, categories) {
       throw new Error('Failed to fetch index.html');
     }
     
-    // Update index.html
-    const year = date.getFullYear();
-    const updatedIndex = updateIndexHTML(indexContent, {
-      title: title,
-      filename: filename,
-      date: dateStr,
-      categories: categories || [],
-      year: year,
-      isFirstInYear: false // Will be determined in updateIndexHTML
-    });
-    
     // Get SHAs for files
+    const postSHA = getGitHubFileSHA(filename); // Will be null for new files
     const indexSHA = getGitHubFileSHA('index.html');
     
     // Prepare files for commit
@@ -914,27 +1740,77 @@ function publishPost(title, content, categories) {
       {
         path: filename,
         content: postHTML,
-        sha: null // New file
-      },
-      {
-        path: 'index.html',
-        content: updatedIndex,
-        sha: indexSHA
+        sha: postSHA // null for new, SHA for update
       }
     ];
     
-    // Commit to GitHub
-    const result = commitToGitHub(files, `Auto-published: ${title} via Grok`);
+    // NOTE: We're NOT updating index.html here - that's done separately via regenerateIndex()
+    // This makes publishing much faster. The post is immediately accessible via direct URL.
+    Logger.log('Publishing post file only (index.html will be regenerated separately)');
+    
+    // Commit to GitHub (only the post file, not index.html)
+    const commitMessage = isUpdate 
+      ? `Auto-updated: ${title} via Grok`
+      : `Auto-published: ${title} via Grok`;
+    
+    Logger.log('Committing post file to GitHub: ' + filename);
+    
+    const result = commitToGitHub(files, commitMessage);
+    
+    Logger.log('Commit result: ' + JSON.stringify(result));
     
     return {
       success: true,
       filename: filename,
       url: `https://garyteh.com/${filename}`,
-      message: result.message
+      message: isUpdate ? 'Post updated successfully! Index will be updated separately.' : 'Post published! Index will be updated separately.',
+      isUpdate: isUpdate,
+      note: 'Your post is live! The blog index will be updated in the background.'
     };
     
   } catch (e) {
     Logger.log('Publish error: ' + e.toString());
+    return {
+      success: false,
+      error: e.message
+    };
+  }
+}
+
+/**
+ * Regenerates index.html from all blog posts
+ * This can be called separately (e.g., via cron job) to update the index
+ * @return {Object} Result with success status
+ */
+function regenerateIndex() {
+  try {
+    Logger.log('Starting index.html regeneration...');
+    
+    // Regenerate the entire index.html from all posts
+    const regeneratedIndex = regenerateIndexHTML();
+    
+    // Get SHA for index.html
+    const indexSHA = getGitHubFileSHA('index.html');
+    
+    // Commit the regenerated index.html
+    const files = [{
+      path: 'index.html',
+      content: regeneratedIndex,
+      sha: indexSHA
+    }];
+    
+    const result = commitToGitHub(files, 'Auto-regenerated index.html from all posts');
+    
+    Logger.log('Index regeneration complete: ' + JSON.stringify(result));
+    
+    return {
+      success: true,
+      message: 'Index.html regenerated successfully!',
+      commitSHA: result.commitSHA
+    };
+    
+  } catch (e) {
+    Logger.log('Index regeneration error: ' + e.toString());
     return {
       success: false,
       error: e.message
@@ -959,5 +1835,166 @@ function escapeHtml(text) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+// ============================================================================
+// TEST FUNCTIONS
+// ============================================================================
+
+/**
+ * Test function to preview blog post HTML without publishing
+ * Run this from Apps Script editor to see what the generated HTML looks like
+ * View → Execution log to see the output
+ */
+function testPublishBlogPost() {
+  try {
+    Logger.log('=== Testing Blog Post Generation ===\n');
+    
+    // Test data
+    const testTitle = 'Test Post: AI and the Future of Blogging';
+    const testContent = `It hit me this morning, hunched over my laptop. No coffee for me—never have been one for it—but the dawn light filtering through the windows did the trick.
+
+**Key observation:** This is a test of the blog publishing system.
+
+Here's what that looks like in practice:
+
+- **Feature one**: Testing markdown conversion
+- **Feature two**: Ensuring HTML is properly formatted
+- **Feature three**: Verifying template injection
+
+Then AI shows up, and prompts become the new UI. "Summarize my notes by theme." Done. No forms, no logins, just intent translated on the fly.
+
+\`\`\`javascript
+// This is a code block
+function test() {
+  return "Hello World";
+}
+\`\`\`
+
+**Reflections for the day:** This is just a test. The actual publishing will work the same way.
+
+What about you—ready to test the system?`;
+    
+    const testCategories = ['Technology', 'AI', 'Testing'];
+    const testDate = new Date();
+    const dateStr = testDate.getFullYear() + '-' + 
+                   String(testDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                   String(testDate.getDate()).padStart(2, '0');
+    
+    Logger.log('Test Title: ' + testTitle);
+    Logger.log('Test Date: ' + dateStr);
+    Logger.log('Test Categories: ' + testCategories.join(', '));
+    Logger.log('\n--- Generating HTML ---\n');
+    
+    // Generate HTML
+    const postHTML = generatePostHTML(testTitle, testContent, dateStr, testCategories);
+    
+    // Log the HTML (first 2000 chars, then full)
+    Logger.log('Generated HTML (first 2000 chars):');
+    Logger.log(postHTML.substring(0, 2000));
+    Logger.log('\n... (truncated) ...\n');
+    Logger.log('Full HTML length: ' + postHTML.length + ' characters');
+    
+    // Test filename generation
+    const slug = testTitle.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    const filename = `${dateStr}-${slug}.html`;
+    Logger.log('\nGenerated filename: ' + filename);
+    
+    // Test index.html update (simulation)
+    Logger.log('\n--- Testing Index.html Update ---\n');
+    const sampleIndex = `<div class="year-section" data-year="2025">
+            <h2 class="year-header">2025 <span style="font-size: 0.6em; color: #95a5a6;">(1 posts)</span></h2>
+            <div class="post" data-title="existing post" data-categories="tech">
+                <div class="post-title"><a href="existing-post.html">Existing Post</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2025-01-01</span>
+                    <span class="categories">• Tech</span>
+                </div>
+            </div>
+        </div>`;
+    
+    const updatedIndex = updateIndexHTML(sampleIndex, {
+      title: testTitle,
+      filename: filename,
+      date: dateStr,
+      categories: testCategories,
+      year: testDate.getFullYear(),
+      isFirstInYear: false
+    });
+    
+    Logger.log('Updated index.html (first 500 chars):');
+    Logger.log(updatedIndex.substring(0, 500));
+    
+    Logger.log('\n=== Test Complete ===');
+    Logger.log('✓ HTML generation: SUCCESS');
+    Logger.log('✓ Filename generation: SUCCESS');
+    Logger.log('✓ Index.html update: SUCCESS');
+    Logger.log('\nNote: This test does NOT commit to GitHub.');
+    Logger.log('To actually publish, use the web app interface.');
+    
+    return {
+      success: true,
+      filename: filename,
+      htmlLength: postHTML.length,
+      message: 'Test completed successfully. Check execution log for details.'
+    };
+    
+  } catch (e) {
+    Logger.log('ERROR in test: ' + e.toString());
+    Logger.log('Error stack: ' + (e.stack || 'No stack trace'));
+    return {
+      success: false,
+      error: e.message
+    };
+  }
+}
+
+/**
+ * Test function to preview markdown to HTML conversion
+ * Run this to see how markdown is converted to HTML
+ */
+function testMarkdownConversion() {
+  Logger.log('=== Testing Markdown to HTML Conversion ===\n');
+  
+  const testMarkdown = `# Heading 1
+
+## Heading 2
+
+This is a paragraph with **bold text** and *italic text*.
+
+Here's a list:
+- Item one
+- Item two
+- Item three
+
+And an ordered list:
+1. First item
+2. Second item
+3. Third item
+
+\`inline code\` and a code block:
+
+\`\`\`javascript
+function test() {
+  return "code";
+}
+\`\`\`
+
+A [link](https://example.com) and a > blockquote.
+
+**Key observation:** This tests the conversion.`;
+
+  Logger.log('Input Markdown:');
+  Logger.log(testMarkdown);
+  Logger.log('\n--- Converted HTML ---\n');
+  
+  const html = convertToHTML(testMarkdown);
+  Logger.log(html);
+  
+  Logger.log('\n=== Conversion Test Complete ===');
+  
+  return html;
 }
 

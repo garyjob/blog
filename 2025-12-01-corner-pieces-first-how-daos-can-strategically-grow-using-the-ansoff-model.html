@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Corner Pieces First: How DAOs Can Strategically Grow Using the Ansoff Model - Exploring strategic growth through game theory and market expansion frameworks">
+    <title>Corner Pieces First: How DAOs Can Strategically Grow Using the Ansoff Model - Gary Teh's Blog</title>
+    
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://garyteh.com/2025-12-01-corner-pieces-first-how-daos-can-strategically-grow-using-the-ansoff-model.html">
+    <meta property="og:title" content="Corner Pieces First: How DAOs Can Strategically Grow Using the Ansoff Model">
+    <meta property="og:description" content="Exploring strategic growth through game theory and market expansion frameworks. How DAOs can leverage the Ansoff Model and Othello corner strategy for growth.">
+    <meta property="og:image" content="https://garyteh.com/images/2025/12/reversi_game_corner_positions.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Gary Teh's Blog">
+    <meta property="article:published_time" content="2025-12-01T00:00:00+00:00">
+    <meta property="article:author" content="Gary Teh">
+    <meta property="article:tag" content="DAOs">
+    <meta property="article:tag" content="Business Strategy">
+    <meta property="article:tag" content="Market Expansion">
+    <meta property="article:tag" content="Tech & Innovation">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://garyteh.com/2025-12-01-corner-pieces-first-how-daos-can-strategically-grow-using-the-ansoff-model.html">
+    <meta name="twitter:title" content="Corner Pieces First: How DAOs Can Strategically Grow Using the Ansoff Model">
+    <meta name="twitter:description" content="Exploring strategic growth through game theory and market expansion frameworks. How DAOs can leverage the Ansoff Model and Othello corner strategy for growth.">
+    <meta name="twitter:image" content="https://garyteh.com/images/2025/12/reversi_game_corner_positions.jpg">
+    
+    <!-- Additional meta for better sharing -->
+    <meta name="author" content="Gary Teh">
+    <link rel="canonical" href="https://garyteh.com/2025-12-01-corner-pieces-first-how-daos-can-strategically-grow-using-the-ansoff-model.html">
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .content figure {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .content figcaption {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>Corner Pieces First: How DAOs Can Strategically Grow Using the Ansoff Model</h1>
+            <div class="post-meta">
+                <span class="post-date">December 1, 2025</span>
+                <span class="category-tag">DAOs</span>
+                <span class="category-tag">Business Strategy</span>
+                <span class="category-tag">Market Expansion</span>
+                <span class="category-tag">Tech & Innovation</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <p>I've been reflecting on how to expand distribution approaches for our DAO, and it struck me—growing something as decentralized and fluid as a DAO requires a careful balance. How do we scale without losing our footing?</p>
+
+            <p>I turned to a classic framework, the Ansoff Marketing Model from a 1957 Harvard Business Review article, and found it surprisingly relevant for our context.</p>
+
+            <p>It's not about chasing growth blindly—it's about aligning with our strengths and avoiding potential pitfalls. Let me share my analysis, from the model itself to the unique characteristics of our DAO, and how we might navigate this complex landscape.</p>
+
+            <h2>The Ansoff Model: Old School, But Still Sharp</h2>
+
+            <p>For those unfamiliar, the Ansoff Model is a 2x2 grid that categorizes growth strategies into four areas: Market Penetration, Market Development, Product Development, and Diversification. (For a deeper dive, see <a href="https://www.mindtools.com/pages/article/newTMC_90.htm" target="_blank">here</a> or the <a href="https://hbr.org/1957/09/strategies-for-diversification" target="_blank">original 1957 paper here</a>.)</p>
+
+            <figure>
+                <img src="images/2018/04/ansoff_matrix.jpg" alt="Ansoff Matrix showing four growth strategies: Market Penetration, Market Development, Product Development, and Diversification">
+                <figcaption>The Ansoff Matrix: A framework for strategic growth planning</figcaption>
+            </figure>
+
+            <p>At its core, it's about deciding whether to focus on familiar territory or explore new markets and products—or both.</p>
+
+            <p>After assessing our DAO's inherent strengths and weaknesses, I've prioritized the strategies as follows:</p>
+
+            <ul>
+                <li><strong>Market Penetration first</strong>—focus on existing markets with our current offerings.</li>
+                <li><strong>Then Market Development</strong>—extend our current offerings into new regions.</li>
+                <li><strong>Next, Product Development</strong>—refine or expand our offerings for existing markets.</li>
+                <li><strong>Finally, Diversification</strong>—the riskiest option, combining new products with new markets.</li>
+            </ul>
+
+            <p>This sequence makes sense because it builds on what we know while gradually expanding our reach. Let's explore this further through a SWOT analysis of our DAO (more on SWOT <a href="https://www.mindtools.com/pages/article/newTMC_05.htm" target="_blank">here</a>).</p>
+
+            <figure>
+                <img src="images/2017/06/swot.png" alt="SWOT Analysis framework showing Strengths, Weaknesses, Opportunities, and Threats">
+                <figcaption>SWOT Analysis: Understanding our strategic position</figcaption>
+            </figure>
+
+            <h2>Our DAO's Superpower: Discovery</h2>
+
+            <p>One area where our DAO excels is discovery. We have a unique ability to connect with remote, lesser-known regions, gather insights across diverse landscapes, and engage with new domains and market verticals.</p>
+
+            <p>We also have access to spare capacity among members that often goes underutilized. My view is that we should map our activities to the resources we already have, rather than seeking new resources for ambitious plans.</p>
+
+            <p>Additionally, with minimal fixed operating overheads, we remain agile—able to adapt without heavy constraints.</p>
+
+            <p>Another strength that's become evident over time is our ability to build social capital. DAOs seem to naturally foster trust and connections in ways traditional structures often can't. A great example of this in action is <a href="https://truesight.me" target="_blank">True Sight DAO</a>, where community-driven insight and collaboration create powerful networks. This intangible asset is powerful—but how do we use it effectively?</p>
+
+            <h2>Our Kryptonite: Reliability and Tight Coordination</h2>
+
+            <p>On the other hand, we face limitations that could hinder us if not addressed. A primary weakness is the lack of consistent availability or reliability of critical resources when needed.</p>
+
+            <p>The "just-in-time" approach common in manufacturing doesn't suit us—we're not built for that kind of precision. Initiatives requiring tightly coordinated efforts or strict critical paths are likely to falter.</p>
+
+            <p>Our approach must prioritize flexibility over rigid execution to work around this constraint.</p>
+
+            <h2>The World Around Us: Opportunities and Threats</h2>
+
+            <p>Looking at the broader environment, there are significant opportunities to seize:</p>
+
+            <ul>
+                <li>Post-COVID shifts in consumer demand have created structural gaps that large brands haven't yet filled, constrained by their existing supply chains.</li>
+                <li>Climate change is raising awareness and altering consumer preferences, opening another market gap.</li>
+                <li>The AI revolution offers immense potential, automating parts of our critical path that once required human effort, allowing us to redirect focus.</li>
+            </ul>
+
+            <p>Yet, challenges persist. Key threats include:</p>
+
+            <ul>
+                <li>Uncertainty around U.S. tariffs and geopolitical tensions that could disrupt plans.</li>
+                <li>AI-driven job displacement potentially reducing consumer spending power and shrinking markets.</li>
+                <li>Climate change impacting supply availability.</li>
+                <li>In niches like cacao, manufacturers moving away from certain ingredients could reduce demand.</li>
+                <li>The EU Deforestation Regulation (EUDR) is shifting demand from African to Latin American supply, which might price us out or erode our differentiation.</li>
+                <li>Additionally, European purchases of large agroforestry lands could limit our access to key markets.</li>
+            </ul>
+
+            <p>Navigating this mix of opportunities and risks requires caution and strategic focus.</p>
+
+            <h2>Key Observation: Turning Logistics into Psychology</h2>
+
+            <p>A recurring thought is how to address the logistical challenges of growth without being held back by our limitations.</p>
+
+            <p>The solution may lie in reframing logistics as a psychological challenge. It's about leveraging social capital through social proofing mechanisms.</p>
+
+            <p>Consider this as a strategic game board—identifying the critical starting points to influence first, so the broader landscape shifts in our favor. Which connections or stakeholders do we prioritize to set the stage for success?</p>
+
+            <p>This perspective draws inspiration from game theory, particularly the strategic thinking around Reversi (also known as Othello). As explored in <a href="https://sites.math.duke.edu/~bray/Courses/49s/StudentSurveys-old/Fall2014/KL_Paper2_GameTheoryOfReversi.pdf" target="_blank">Professor Kevin Lu's analysis of the game theory of Reversi</a>, controlling the corner pieces is often the key to dominating the board. In Reversi, corner positions are stable—once captured, they cannot be flipped by the opponent, making them strategic anchors for the entire game.</p>
+
+            <figure>
+                <img src="images/2025/12/reversi_game_corner_positions.jpg" 
+                     alt="Reversi board game showing all four corners occupied by the same color, demonstrating strategic corner control" 
+                     style="max-width: 600px; margin: 20px auto; display: block;">
+                <figcaption>Strategic corner control in Reversi: The four corners occupied by the same color create a stable foundation for board dominance. In Othello/Reversi, corner pieces cannot be flipped once captured, making them strategic anchors.</figcaption>
+            </figure>
+
+            <p>Picture this like an Othello board—what are the corner pieces we need to flip first so the rest of the board naturally follows? Who do we influence, what connections do we activate, to make the lay of the land work in our favor?</p>
+
+            <p>I'm still chewing on this, but it feels like the right direction.</p>
+
+            <h2>Reflections for the Day</h2>
+
+            <p>Aligning our DAO's growth with the Ansoff Model isn't merely about selecting a strategy—it's about staying true to our identity. We're explorers, not mechanized operators.</p>
+
+            <p>We must capitalize on discovery, flexibility, and social capital while avoiding rigid, resource-intensive commitments.</p>
+
+            <p>The world is evolving rapidly, with AI, climate shifts, and geopolitical dynamics presenting both obstacles and openings. If we remain adaptable, these changes can work to our advantage.</p>
+
+            <p>What's your take? How can DAOs approach growth amidst a landscape of opportunity and risk? Are there strategic starting points you'd prioritize to shift the broader picture? I'm curious to hear your insights.</p>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2025</p>
+        </footer>
+    </div>
+    
+    <!-- Mailchimp Newsletter Signup -->
+    <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/f4002ef7c62ee64494321ba14/9c56fa20706b0138cf6fea672.js");</script>
+</body>
+</html>
+
