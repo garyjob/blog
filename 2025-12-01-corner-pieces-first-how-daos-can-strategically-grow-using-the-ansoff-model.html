@@ -164,11 +164,38 @@
             margin: 20px 0;
             text-align: center;
         }
+        .content figure img {
+            max-width: 100%;
+            height: auto;
+            width: auto;
+            display: block;
+            margin: 0 auto;
+            border-radius: 5px;
+        }
         .content figcaption {
             font-size: 0.9em;
             color: #7f8c8d;
             margin-top: 8px;
             font-style: italic;
+            text-align: center;
+            padding: 0 10px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            .content figure {
+                margin: 15px -20px;
+            }
+            .content figure img {
+                width: 100%;
+                max-width: 100%;
+                border-radius: 0;
+            }
+            .content figcaption {
+                padding: 8px 20px;
+                font-size: 0.85em;
+            }
         }
         footer {
             margin-top: 50px;
@@ -282,8 +309,7 @@
 
             <figure>
                 <img src="images/2025/12/reversi_game_corner_positions.jpg" 
-                     alt="Reversi board game showing all four corners occupied by the same color, demonstrating strategic corner control" 
-                     style="max-width: 600px; margin: 20px auto; display: block;">
+                     alt="Reversi board game showing all four corners occupied by the same color, demonstrating strategic corner control">
                 <figcaption>Strategic corner control in Reversi: The four corners occupied by the same color create a stable foundation for board dominance. In Othello/Reversi, corner pieces cannot be flipped once captured, making them strategic anchors.</figcaption>
             </figure>
 

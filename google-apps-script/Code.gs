@@ -1533,9 +1533,9 @@ function listDrafts() {
     
     if (response.getResponseCode() === 200) {
       const data = JSON.parse(response.getContentText());
-      // Filter for .html files that look like blog posts
+      // Filter for .md files that look like blog posts (or .html for backward compatibility)
       const drafts = data
-        .filter(file => file.type === 'file' && file.name.match(/^\d{4}-\d{2}-\d{2}-.+\.html$/i))
+        .filter(file => file.type === 'file' && file.name.match(/^\d{4}-\d{2}-\d{2}-.+\.(md|html)$/i))
         .map(file => {
           // Extract date from filename
           const dateMatch = file.name.match(/(\d{4}-\d{2}-\d{2})/);
@@ -1551,23 +1551,35 @@ function listDrafts() {
         try {
           const draftContent = fetchGitHubFile(draft.draftPath);
           if (draftContent) {
-            const titleMatch = draftContent.match(/<h1[^>]*>([^<]+)<\/h1>/i);
-            if (titleMatch) {
-              draft.title = titleMatch[1].trim();
-            } else {
-              const titleTagMatch = draftContent.match(/<title[^>]*>([^<]+)<\/title>/i);
-              if (titleTagMatch) {
-                draft.title = titleTagMatch[1].replace(/\s*-\s*Gary Teh's Blog.*$/i, '').trim();
+            // Check if it's markdown (has frontmatter) or HTML
+            if (draftContent.startsWith('---')) {
+              // Markdown with frontmatter
+              const titleMatch = draftContent.match(/^---\s*\ntitle:\s*"([^"]+)"|^---\s*\ntitle:\s*([^\n]+)/m);
+              if (titleMatch) {
+                draft.title = (titleMatch[1] || titleMatch[2]).trim();
               } else {
-                draft.title = draft.filename.replace(/\.html$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+                draft.title = draft.filename.replace(/\.(md|html)$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+              }
+            } else {
+              // HTML format (backward compatibility)
+              const titleMatch = draftContent.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+              if (titleMatch) {
+                draft.title = titleMatch[1].trim();
+              } else {
+                const titleTagMatch = draftContent.match(/<title[^>]*>([^<]+)<\/title>/i);
+                if (titleTagMatch) {
+                  draft.title = titleTagMatch[1].replace(/\s*-\s*Gary Teh's Blog.*$/i, '').trim();
+                } else {
+                  draft.title = draft.filename.replace(/\.(md|html)$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+                }
               }
             }
           } else {
-            draft.title = draft.filename.replace(/\.html$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+            draft.title = draft.filename.replace(/\.(md|html)$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
           }
         } catch (e) {
           Logger.log('Error fetching title for ' + draft.filename + ': ' + e.toString());
-          draft.title = draft.filename.replace(/\.html$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+          draft.title = draft.filename.replace(/\.(md|html)$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
         }
         return draft;
       });
@@ -1679,85 +1691,121 @@ function loadExistingDraft(filename) {
     }
     
     // Fetch the draft file from GitHub
-    const postHTML = fetchGitHubFile(draftPath);
-    if (!postHTML) {
+    const draftContent = fetchGitHubFile(draftPath);
+    if (!draftContent) {
       throw new Error('Draft not found: ' + draftPath);
     }
     
     // Extract just the filename without drafts/ prefix for return
     const justFilename = filename.replace(/^drafts\//, '');
     
-    // Extract title from <h1> or <title>
     let title = '';
-    const titleMatch = postHTML.match(/<h1[^>]*>([^<]+)<\/h1>/i);
-    if (titleMatch) {
-      title = titleMatch[1].trim();
-    } else {
-      const titleTagMatch = postHTML.match(/<title[^>]*>([^<]+)<\/title>/i);
-      if (titleTagMatch) {
-        title = titleTagMatch[1].replace(/\s*-\s*Gary Teh's Blog.*$/i, '').trim();
-      }
-    }
-    
-    // Extract content from <div class="content">
     let content = '';
-    const contentMatch = postHTML.match(/<div class="content">([\s\S]*?)<\/div>\s*<footer/i);
-    if (contentMatch) {
-      content = contentMatch[1].trim();
-      // Convert HTML back to markdown-like text for editing
-      // Remove HTML tags but keep structure
-      content = content
-        .replace(/<p>/g, '')
-        .replace(/<\/p>/g, '\n\n')
-        .replace(/<br\s*\/?>/gi, '\n')
-        .replace(/<strong>(.*?)<\/strong>/g, '**$1**')
-        .replace(/<em>(.*?)<\/em>/g, '*$1*')
-        .replace(/<h2>(.*?)<\/h2>/g, '\n## $1\n')
-        .replace(/<h3>(.*?)<\/h3>/g, '\n### $1\n')
-        .replace(/<ul>[\s\S]*?<\/ul>/g, function(match) {
-          return match.replace(/<li>(.*?)<\/li>/g, '- $1\n');
-        })
-        .replace(/<ol>[\s\S]*?<\/ol>/g, function(match) {
-          let counter = 1;
-          return match.replace(/<li>(.*?)<\/li>/g, function() {
-            return counter++ + '. $1\n';
-          });
-        })
-        .replace(/<code>(.*?)<\/code>/g, '`$1`')
-        .replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/g, '```\n$1\n```')
-        .replace(/<a href="([^"]+)">([^<]+)<\/a>/g, '[$2]($1)')
-        .replace(/<[^>]+>/g, '') // Remove any remaining HTML tags
-        .replace(/\n{3,}/g, '\n\n') // Clean up multiple newlines
-        .trim();
-    }
-    
-    // Extract categories from category-tag spans
-    const categories = [];
-    const categoryMatches = postHTML.matchAll(/<span class="category-tag">([^<]+)<\/span>/g);
-    for (const match of categoryMatches) {
-      categories.push(match[1].trim());
-    }
-    
-    // Extract date from post-date span or filename
+    let categories = [];
     let date = '';
-    const dateMatch = postHTML.match(/<span class="post-date">([^<]+)<\/span>/i);
-    if (dateMatch) {
-      // Try to parse the date and convert to YYYY-MM-DD
-      const dateStr = dateMatch[1].trim();
-      const dateObj = new Date(dateStr);
-      if (!isNaN(dateObj.getTime())) {
-        date = dateObj.getFullYear() + '-' + 
-               String(dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
-               String(dateObj.getDate()).padStart(2, '0');
+    
+    // Check if it's markdown with frontmatter or HTML
+    if (draftContent.startsWith('---')) {
+      // Markdown format with frontmatter
+      const frontmatterEnd = draftContent.indexOf('---', 3);
+      if (frontmatterEnd !== -1) {
+        const frontmatter = draftContent.substring(3, frontmatterEnd).trim();
+        content = draftContent.substring(frontmatterEnd + 3).trim();
+        
+        // Parse frontmatter
+        const titleMatch = frontmatter.match(/^title:\s*"([^"]+)"|^title:\s*([^\n]+)/m);
+        if (titleMatch) {
+          title = (titleMatch[1] || titleMatch[2]).trim();
+        }
+        
+        const dateMatch = frontmatter.match(/^date:\s*(\d{4}-\d{2}-\d{2})/m);
+        if (dateMatch) {
+          date = dateMatch[1];
+        }
+        
+        const categoriesMatch = frontmatter.match(/^categories:\s*\[([^\]]+)\]/m);
+        if (categoriesMatch) {
+          // Extract quoted strings from array
+          const catArray = categoriesMatch[1].match(/"([^"]+)"/g);
+          if (catArray) {
+            categories = catArray.map(c => c.replace(/"/g, '').trim());
+          }
+        }
+      }
+    } else {
+      // HTML format (backward compatibility)
+      // Extract title from <h1> or <title>
+      const titleMatch = draftContent.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+      if (titleMatch) {
+        title = titleMatch[1].trim();
+      } else {
+        const titleTagMatch = draftContent.match(/<title[^>]*>([^<]+)<\/title>/i);
+        if (titleTagMatch) {
+          title = titleTagMatch[1].replace(/\s*-\s*Gary Teh's Blog.*$/i, '').trim();
+        }
+      }
+      
+      // Extract content from <div class="content">
+      const contentMatch = draftContent.match(/<div class="content">([\s\S]*?)<\/div>\s*<footer/i);
+      if (contentMatch) {
+        content = contentMatch[1].trim();
+        // Convert HTML back to markdown-like text for editing
+        content = content
+          .replace(/<p>/g, '')
+          .replace(/<\/p>/g, '\n\n')
+          .replace(/<br\s*\/?>/gi, '\n')
+          .replace(/<strong>(.*?)<\/strong>/g, '**$1**')
+          .replace(/<em>(.*?)<\/em>/g, '*$1*')
+          .replace(/<h2>(.*?)<\/h2>/g, '\n## $1\n')
+          .replace(/<h3>(.*?)<\/h3>/g, '\n### $1\n')
+          .replace(/<ul>[\s\S]*?<\/ul>/g, function(match) {
+            return match.replace(/<li>(.*?)<\/li>/g, '- $1\n');
+          })
+          .replace(/<ol>[\s\S]*?<\/ol>/g, function(match) {
+            let counter = 1;
+            return match.replace(/<li>(.*?)<\/li>/g, function() {
+              return counter++ + '. $1\n';
+            });
+          })
+          .replace(/<code>(.*?)<\/code>/g, '`$1`')
+          .replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/g, '```\n$1\n```')
+          .replace(/<a href="([^"]+)">([^<]+)<\/a>/g, '[$2]($1)')
+          .replace(/<[^>]+>/g, '') // Remove any remaining HTML tags
+          .replace(/\n{3,}/g, '\n\n') // Clean up multiple newlines
+          .trim();
+      }
+      
+      // Extract categories from category-tag spans
+      const categoryMatches = draftContent.matchAll(/<span class="category-tag">([^<]+)<\/span>/g);
+      for (const match of categoryMatches) {
+        categories.push(match[1].trim());
+      }
+      
+      // Extract date from post-date span or filename
+      const dateMatch = draftContent.match(/<span class="post-date">([^<]+)<\/span>/i);
+      if (dateMatch) {
+        // Try to parse the date and convert to YYYY-MM-DD
+        const dateStr = dateMatch[1].trim();
+        const dateObj = new Date(dateStr);
+        if (!isNaN(dateObj.getTime())) {
+          date = dateObj.getFullYear() + '-' + 
+                 String(dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                 String(dateObj.getDate()).padStart(2, '0');
+        }
       }
     }
     
     // If no date found, try to extract from filename
     if (!date) {
-      const filenameDateMatch = filename.match(/(\d{4}-\d{2}-\d{2})/);
+      const filenameDateMatch = justFilename.match(/(\d{4}-\d{2}-\d{2})/);
       if (filenameDateMatch) {
         date = filenameDateMatch[1];
       }
+    }
+    
+    // If no title found, extract from filename
+    if (!title) {
+      title = justFilename.replace(/\.(md|html)$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/-/g, ' ');
     }
     
     return {
@@ -1915,6 +1963,8 @@ function saveDraft(title, content, categories, existingFilename) {
       // Extract date from filename
       const dateMatch = filename.match(/(\d{4}-\d{2}-\d{2})/);
       dateStr = dateMatch ? dateMatch[1] : new Date().toISOString().split('T')[0];
+      // If updating, ensure it's .md extension
+      filename = filename.replace(/\.html$/, '.md');
     } else {
       // Creating new draft
       const date = new Date();
@@ -1925,11 +1975,25 @@ function saveDraft(title, content, categories, existingFilename) {
       const slug = title.toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '');
-      filename = `${dateStr}-${slug}.html`;
+      filename = `${dateStr}-${slug}.md`;
     }
     
-    // Generate post HTML
-    const postHTML = generatePostHTML(title, content, dateStr, categories);
+    // Format date for frontmatter
+    const dateObj = new Date(dateStr);
+    const formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    
+    // Build markdown content with frontmatter
+    let markdownContent = `---\n`;
+    markdownContent += `title: "${title.replace(/"/g, '\\"')}"\n`;
+    markdownContent += `date: ${dateStr}\n`;
+    markdownContent += `formattedDate: "${formattedDate}"\n`;
+    if (categories && categories.length > 0) {
+      markdownContent += `categories: [${categories.map(c => `"${c.replace(/"/g, '\\"')}"`).join(', ')}]\n`;
+    }
+    markdownContent += `---\n\n`;
+    
+    // Add content (already in markdown format from conversation)
+    markdownContent += content;
     
     // Save to drafts folder
     const draftPath = `drafts/${filename}`;
@@ -1941,7 +2005,7 @@ function saveDraft(title, content, categories, existingFilename) {
     const files = [
       {
         path: draftPath,
-        content: postHTML,
+        content: markdownContent,
         sha: draftSHA // null for new, SHA for update
       }
     ];
@@ -1963,7 +2027,7 @@ function saveDraft(title, content, categories, existingFilename) {
       draftPath: draftPath,
       message: isUpdate ? 'Draft updated successfully!' : 'Draft saved successfully!',
       isUpdate: isUpdate,
-      note: 'Draft saved to drafts folder. You can review and publish it later.'
+      note: 'Draft saved to drafts folder as markdown. You can review and publish it later.'
     };
     
   } catch (e) {
