@@ -163,10 +163,40 @@
             margin-left: 10px;
             font-weight: 600;
         }
+        .admin-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 0.9em;
+            color: #7f8c8d;
+            text-decoration: none;
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: #fafafa;
+            transition: all 0.2s;
+        }
+        .admin-link:hover {
+            color: #3498db;
+            border-color: #3498db;
+            background: #f0f8ff;
+        }
+        .container {
+            position: relative;
+        }
+        @media (max-width: 600px) {
+            .admin-link {
+                top: 10px;
+                right: 10px;
+                font-size: 0.8em;
+                padding: 6px 10px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <a href="admin/" class="admin-link" title="Admin Panel - Blog Publisher">✏️ Admin</a>
         <header>
             <img src="header.jpg" alt="Gary Teh Header" class="header-banner">
             <div class="profile-section">

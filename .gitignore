@@ -1,0 +1,44 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# Google Apps Script credentials (if any)
+google-apps-script/.env
+google-apps-script/*.json
+!google-apps-script/Code.gs
+!google-apps-script/Index.html
+!google-apps-script/README.md
+
+# API keys and tokens (any format)
+*_key.txt
+*_token.txt
+*secret*
+*credentials*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
