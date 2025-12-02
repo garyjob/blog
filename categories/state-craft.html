@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Craft - Gary Teh's Blog</title>
+    <meta name="description" content="All posts in the State Craft category on Gary Teh's Blog">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .stats {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            color: #555;
+        }
+        .year-section {
+            margin-bottom: 40px;
+        }
+        .year-header {
+            color: #3498db;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        .post {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #fafafa;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+        .post:hover {
+            background: #f0f8ff;
+            border-left-color: #2980b9;
+            transform: translateX(5px);
+        }
+        .post-title {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+        .post-title a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .post-title a:hover {
+            color: #3498db;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .post-meta a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .post-meta a:hover {
+            text-decoration: underline;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to all posts</a>
+        
+        <header>
+            <h1>State Craft</h1>
+            <div class="stats">
+                <strong>73 posts</strong> in this category
+            </div>
+        </header>
+        <div class="year-section" data-year="2021">
+            <h2 class="year-header">2021 <span style="font-size: 0.6em; color: #95a5a6;">(1 posts)</span></h2>
+            <div class="post">
+                <div class="post-title"><a href="../2021-02-10-observations-at-the-heart-of-permian-basin.html">Observations at the heart of Permian basin</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2021-02-10</span>
+                </div>
+            </div>
+        </div>
+        <div class="year-section" data-year="2020">
+            <h2 class="year-header">2020 <span style="font-size: 0.6em; color: #95a5a6;">(13 posts)</span></h2>
+            <div class="post">
+                <div class="post-title"><a href="../2020-10-21-weapons-of-math-destruction-by-cathy-oneil.html">Weapons of Math destruction by Cathy O'Neil</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2020-10-21</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2020-04-26-the-dichotomy-between-privacy-and-health.html">The dichotomy between privacy and health</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2020-04-26</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2020-04-19-thoughts-on-the-nature-of-framing.html">Thoughts on the nature of framing</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2020-04-19</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2020-04-14-the-trouble-with-markets-by-roger-bootle.html">The trouble with markets by Roger Bootle</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2020-04-14</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2020-04-04-observations-on-our-news-reporting-system-as-well-as-investment-bank-forecasting.html">Observations on our news reporting system as well as investment bank forecasting.</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2020-04-04</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2020-03-26-the-ai-economy-roger-bootle.html">The AI economy, Roger Bootle</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2020-03-26</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2020-03-18-chat-with-johnson-on-coronavirus.html">Chat with Johnson and Dad on CoronaVirus and crisis investing</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2020-03-18</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2020-03-18-global-warming-and-the-four-horsemen-of-apocalypse.html">Global warming and the four horsemen of apocalypse</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2020-03-18</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2020-03-17-thoughts-on-the-corona-virus.html">Thoughts on the Corona Virus stock market crash</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2020-03-17</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2020-03-16-federal-reserve-rate-cuts.html">Federal reserve rate cuts</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2020-03-16</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2020-02-27-conversations-with-garis.html">Conversations with Garis</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2020-02-27</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2020-01-11-chat-with-joe-and-his-dad.html">Chat with Joe and his dad</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2020-01-11</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2020-01-03-dinner-with-mansu.html">Dinner with Mansu</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2020-01-03</span>
+                </div>
+            </div>
+        </div>
+        <div class="year-section" data-year="2019">
+            <h2 class="year-header">2019 <span style="font-size: 0.6em; color: #95a5a6;">(55 posts)</span></h2>
+            <div class="post">
+                <div class="post-title"><a href="../2019-12-16-federal-reserve-maintains-interest-rates-11th-dec-2019.html">Federal reserve maintains interest rates 11th Dec 2019</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-12-16</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-12-06-book-summary-the-dollar-crisis.html">Book summary: The dollar crisis</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-12-06</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-12-04-french-youth-impression-on-president-macron.html">French youth impression on President Macron</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-12-04</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-12-01-experiments-with-managing-our-wealth-gap.html">Experiments with managing our wealth gap</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-12-01</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-11-26-eric-ly-on-the-new-world-order.html">Eric Li on the new world order proposed by China</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-11-26</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-11-14-investment-biker-jim-rogers.html">Investment Biker, Jim Rogers</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-11-14</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-11-14-lee-kuan-yew-interviews-and-selections-by-graham-allison-and-robert-d-black-will-with-ali-wyne.html">Lee Kuan Yew, Interviews and selections by Graham Allison and Robert D Black Will with Ali Wyne</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-11-14</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-11-14-federal-reserve-chairman-testifies-before-congress-20191113.html">Federal Reserve chairman testifies before Congress 20191113</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-11-14</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-11-11-on-china-henry-kissinger.html">On China, Henry Kissinger</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-11-11</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-11-07-examples-of-various-networks-failing-at-scale.html">Examples of various networks failing at scale</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-11-07</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-10-31-federal-reserve-interest-rate-cut-decision-20191030.html">Federal Reserve interest rate cut decision 20191030</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-10-31</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-10-18-general-thoughts-on-mark-zuckerbergs-warning-of-the-internets-role-in-authoritarianism-displacing-democracy.html">General thoughts on Mark Zuckerberg’s warning of the internet’s role in Authoritarianism displacing Democracy</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-10-18</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-10-17-constrains-on-world-gdp-levels.html">Constrains on world GDP levels</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-10-17</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-10-15-simultaneous-inflation-and-deflation-pressures-in-china.html">Simultaneous inflation and deflation pressures in China</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-10-15</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-10-13-an-unchanging-constant-as-the-source-of-trust.html">An unchanging constant as the source of trust</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-10-13</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-10-11-thoughts-of-various-asset-class-type-and-their-usage.html">Thoughts of various asset class type and their usage</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-10-11</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-10-11-observed-unwinding-of-credit-in-the-market.html">Observed unwinding of credit in the market</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-10-11</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-10-09-observations-on-how-public-opinion-is-shaped-in-the-us.html">Observations on how public opinion is shaped in the US</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-10-09</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-10-07-book-summary-the-perfect-weapon-by-david-sanger.html">Book summary: The perfect weapon by David Sanger</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-10-07</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-09-22-evening-out-watching-rambo-last-blood.html">Evening out watching Rambo, last blood</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-09-22</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-09-08-key-insights-from-mooncake-festival-at-house-of-jerry-and-liza.html">Key insights from mooncake festival at house of Jerry and Liza</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-09-08</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-09-06-david-letterman-interview-with-barack-obama.html">David Letterman interview with Barack Obama</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-09-06</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-09-06-the-american-factory.html">The American Factory</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-09-06</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-09-05-book-summary-understanding-big-debt-crisis-by-ray-dalio.html">Book summary: Understanding big debt crisis by Ray Dalio</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-09-05</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-09-01-key-insights-from-weekend-with-jerry-liza-ada-and-dan.html">Key insights from weekend with Jerry, Liza, Ada and Dan</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-09-01</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-08-28-escalating-tension-in-asia-pacific-and-how-history-tends-to-repeat-itself.html">Escalating tension in Asia Pacific and how history tends to repeat itself</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-08-28</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-08-24-book-summary-the-asian-financial-crisis-by-shalendra-sharma.html">Book summary: The Asian Financial Crisis by Shalendra Sharma</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-08-24</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-08-20-book-summary-the-savings-and-loan-crisis-lessons-from-a-regulatory-failure.html">Book summary: The Savings and Loan Crisis - Lessons from a regulatory failure</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-08-20</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-08-20-why-banks-are-trading-at-or-below-net-book-value.html">Why banks are trading at or below net book value</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-08-20</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-08-07-insights-from-lunch-with-andrew-and-paul.html">Insights from lunch with Andrew and Paul</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-08-07</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-08-02-donald-trumps-august-1st-2019-tweet-on-additional-tariffs.html">Donald Trump's August 1st 2019 tweet on additional tariffs</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-08-02</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-08-01-federal-chairman-jerome-powell-on-0-25-interest-rate-cuts.html">Federal Chairman Jerome Powell on 0.25% interest rate cuts</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-08-01</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-07-30-manias-panics-and-crashes-balance-of-trade-mechanism.html">Manias, Panics and Crashes - balance of trade mechanism</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-07-30</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-07-25-book-summary-the-bank-credit-analysis-handbook-by-jonathan-golin-and-philippe-delhaise.html">Book summary - The Bank Credit Analysis Handbook by Jonathan Golin and Philippe Delhaise</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-07-25</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-07-24-the-case-for-hastening-the-replacement-of-workers-with-ai.html">The case for hastening the replacement of workers with AI</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-07-24</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-07-15-summary-of-readings-and-conversations-for-the-week.html">Summary of readings and conversations for the week</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-07-15</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-07-11-key-highlights-of-fed-chair-jerome-powells-testification-before-the-congress.html">Key highlights of Fed Chair Jerome Powell's testification before the congress</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-07-11</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-07-10-book-summary-ai-super-powers-china-silicon-valley-and-the-new-world-order-by-kai-fu-lee.html">Book summary AI super-powers, China, silicon valley and the new world order by Kai Fu Lee</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-07-10</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-07-01-mark-zuckerberg-chats-with-yuval-noah-harrai-on-the-future-of-ai.html">Mark Zuckerberg chats with Yuval Noah Harrai on the Future of AI</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-07-01</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-06-27-analysis-of-the-facebook-libra-token.html">Analysis of the Facebook Libra Token</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-06-27</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-06-20-20190619-federal-reserve-chairman-powells-speech.html">20190619 - Federal reserve chairman Powell’s speech</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-06-20</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-06-20-the-book-summary-wealth-of-nations.html">Book summary - the wealth of nations</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-06-20</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-06-19-reflections-for-the-morning-10.html">Reflections on the subject of economics</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-06-19</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-06-17-guo-jias-ten-advantage-framework.html">Guo Jia’s Ten Advantage Framework</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-06-17</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-06-05-june-4th-2019-us-china-trade-war-loss-aversion-reversion-to-mean-pattern.html">June 4th 2019 US/China trade war loss aversion reversion to mean pattern</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-06-05</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-05-28-key-take-aways-from-the-governance-of-china-by-xi-jinping.html">Key take aways from The Governance of China by Xi JinPing</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-05-28</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-05-26-key-takeaway-from-great-again-by-donald-trump.html">Key takeaway from Great Again by Donald Trump</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-05-26</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-05-14-macro-economic-analysis-on-us-china-trade-war.html">Macro economic analysis on US/China 2018/2019 Trade war</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-05-14</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-05-04-book-summary-the-fate-of-rome.html">Book summary: The Fate of Rome</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-05-04</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-04-27-insights-from-dinner-with-yuan.html">Insights from dinner with Yuan</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-04-27</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-04-22-blitzscaling-with-microsoft.html">Blitzscaling with Microsoft</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-04-22</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-04-22-societal-comparison-between-our-current-day-and-age-versus-the-era-of-communisms-rise.html">Societal comparison between our current day and age versus the era of communism's rise</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-04-22</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-04-15-book-summary-george-orwells-1984.html">Book summary: George Orwell's 1984</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-04-15</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-02-01-key-take-aways-from-the-guide-to-a-good-life.html">Key take aways from the guide to a good life</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-02-01</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2019-01-18-key-observations-of-chinese-one-belt-road-initiative-in-africa.html">Key observations of Chinese One Belt Road Initiative in Africa</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2019-01-18</span>
+                </div>
+            </div>
+        </div>
+        <div class="year-section" data-year="2018">
+            <h2 class="year-header">2018 <span style="font-size: 0.6em; color: #95a5a6;">(4 posts)</span></h2>
+            <div class="post">
+                <div class="post-title"><a href="../2018-12-13-key-observations-in-ethiopia.html">Key observations in Ethiopia</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2018-12-13</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2018-12-09-reflections-on-self-mastery.html">Reflections on self mastery</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2018-12-09</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2018-12-08-observations-in-sudan.html">Observations in Sudan</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2018-12-08</span>
+                </div>
+            </div>
+            <div class="post">
+                <div class="post-title"><a href="../2018-12-02-key-take-aways-from-mien-kampf-adolfo-hitler.html">Key take aways from Mien Kampf, Adolf Hitler</a></div>
+                <div class="post-meta">
+                    <span class="post-date">2018-12-02</span>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <p><a href="../index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2025</p>
+        </footer>
+    </div>
+    <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/f4002ef7c62ee64494321ba14/9c56fa20706b0138cf6fea672.js");</script>
+</body>
+</html>
