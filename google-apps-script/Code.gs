@@ -368,6 +368,13 @@ function convertToHTML(text) {
   // Convert links [text](url)
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
   
+  // Convert images ![alt](url) or ![alt](url "title")
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)(?:\s+"([^"]+)")?\)/g, function(match, alt, url, title) {
+    const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
+    const altAttr = alt ? ` alt="${escapeHtml(alt)}"` : '';
+    return `<img src="${escapeHtml(url)}"${altAttr}${titleAttr} style="max-width: 100%; height: auto; margin: 20px 0; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: block;">`;
+  });
+  
   // Convert blockquotes
   html = html.replace(/^> (.+)$/gim, '<blockquote>$1</blockquote>');
   
@@ -1456,6 +1463,209 @@ function commitToGitHub(files, message) {
 }
 
 // ============================================================================
+// IMAGE UPLOAD
+// ============================================================================
+
+/**
+ * Uploads an image file to GitHub in the uploads folder
+ * @param {string} base64Data - The image file as base64 string
+ * @param {string} filename - Original filename
+ * @param {string} mimeType - MIME type of the image
+ * @return {Object} Result with image URL or error
+ */
+function uploadImageFromBase64(base64Data, filename, mimeType) {
+  try {
+    const token = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
+    const owner = PropertiesService.getScriptProperties().getProperty('GITHUB_OWNER') || 'garyjob';
+    const repo = PropertiesService.getScriptProperties().getProperty('GITHUB_REPO') || 'blog';
+    const branch = PropertiesService.getScriptProperties().getProperty('GITHUB_BRANCH') || 'main';
+    
+    if (!token || token === 'your-github-token-here') {
+      throw new Error('GITHUB_TOKEN not configured. Run setupProperties() first.');
+    }
+    
+    // Generate unique filename with timestamp
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const timestamp = Date.now();
+    const fileExt = filename.split('.').pop().toLowerCase();
+    const sanitizedBase = filename.replace(/\.[^/.]+$/, '').replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    const uniqueFilename = timestamp + '-' + sanitizedBase + '.' + fileExt;
+    
+    // Path in uploads folder
+    const uploadPath = 'images/uploads/' + year + '/' + month + '/' + uniqueFilename;
+    
+    // base64Data is already base64 encoded
+    const base64Content = base64Data;
+    
+    // Upload to GitHub
+    const url = 'https://api.github.com/repos/' + owner + '/' + repo + '/contents/' + encodeURIComponent(uploadPath);
+    const payload = {
+      message: 'Upload image: ' + filename,
+      content: base64Content,
+      branch: branch
+    };
+    
+    const response = UrlFetchApp.fetch(url, {
+      method: 'put',
+      contentType: 'application/json',
+      headers: {
+        'Authorization': 'token ' + token,
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+    
+    const responseCode = response.getResponseCode();
+    const responseText = response.getContentText();
+    
+    if (responseCode !== 200 && responseCode !== 201) {
+      Logger.log('Error uploading image: ' + responseText);
+      const error = JSON.parse(responseText);
+      throw new Error('Failed to upload image: ' + (error.message || 'Unknown error'));
+    }
+    
+    const result = JSON.parse(responseText);
+    
+    // Return the relative path that can be used in markdown
+    const imageUrl = uploadPath;
+    
+    Logger.log('Image uploaded successfully: ' + imageUrl);
+    
+    return {
+      success: true,
+      url: imageUrl,
+      fullUrl: 'https://raw.githubusercontent.com/' + owner + '/' + repo + '/' + branch + '/' + uploadPath,
+      message: 'Image uploaded successfully'
+    };
+    
+  } catch (e) {
+    Logger.log('Image upload error: ' + e.toString());
+    return {
+      success: false,
+      error: e.message
+    };
+  }
+}
+
+/**
+ * Test function to verify image upload function is accessible
+ * @return {string} Success message
+ */
+function testImageUpload() {
+  return 'Image upload function is accessible';
+}
+
+/**
+ * Moves images from uploads folder to final location when publishing
+ * @param {string} content - Markdown content with image references
+ * @param {string} dateStr - Post date (YYYY-MM-DD)
+ * @return {Object} Updated content and list of moved images
+ */
+function moveImagesOnPublish(content, dateStr) {
+  try {
+    const token = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
+    const owner = PropertiesService.getScriptProperties().getProperty('GITHUB_OWNER') || 'garyjob';
+    const repo = PropertiesService.getScriptProperties().getProperty('GITHUB_REPO') || 'blog';
+    const branch = PropertiesService.getScriptProperties().getProperty('GITHUB_BRANCH') || 'main';
+    
+    if (!token || token === 'your-github-token-here') {
+      throw new Error('GITHUB_TOKEN not configured.');
+    }
+    
+    // Extract date parts
+    const dateMatch = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!dateMatch) {
+      Logger.log('Invalid date format, skipping image move');
+      return { content: content, movedImages: [] };
+    }
+    
+    const year = dateMatch[1];
+    const month = dateMatch[2];
+    
+    // Find all image references in uploads folder
+    const imagePattern = /!\[([^\]]*)\]\((images\/uploads\/[^)]+)\)/g;
+    const imagesToMove = [];
+    let match;
+    
+    while ((match = imagePattern.exec(content)) !== null) {
+      const uploadPath = match[2];
+      const filename = uploadPath.split('/').pop();
+      const finalPath = `images/${year}/${month}/${filename}`;
+      imagesToMove.push({ uploadPath, finalPath, alt: match[1] });
+    }
+    
+    if (imagesToMove.length === 0) {
+      return { content: content, movedImages: [] };
+    }
+    
+    Logger.log(`Moving ${imagesToMove.length} images to final location`);
+    
+    // Move each image
+    const filesToCommit = [];
+    for (let i = 0; i < imagesToMove.length; i++) {
+      const img = imagesToMove[i];
+      
+      // Fetch the image from uploads
+      const uploadUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(img.uploadPath)}?ref=${branch}`;
+      const uploadResponse = UrlFetchApp.fetch(uploadUrl, {
+        headers: {
+          'Authorization': 'token ' + token,
+          'Accept': 'application/vnd.github.v3+json'
+        },
+        muteHttpExceptions: true
+      });
+      
+      if (uploadResponse.getResponseCode() === 200) {
+        const uploadData = JSON.parse(uploadResponse.getContentText());
+        const base64Content = uploadData.content.replace(/\s/g, ''); // Remove whitespace
+        
+        // Check if final location already exists
+        const finalSHA = getGitHubFileSHA(img.finalPath);
+        
+        filesToCommit.push({
+          path: img.finalPath,
+          content: base64Content,
+          sha: finalSHA // null for new, SHA for update
+        });
+        
+        // Update content to use final path
+        content = content.replace(
+          new RegExp('!\\[([^\\]]*)\\]\\(' + escapeRegex(img.uploadPath) + '\\)', 'g'),
+          '![$1](' + img.finalPath + ')'
+        );
+      }
+    }
+    
+    // Commit all moved images
+    if (filesToCommit.length > 0) {
+      const commitMessage = `Move ${filesToCommit.length} image(s) to final location for published post`;
+      commitToGitHub(filesToCommit, commitMessage);
+      Logger.log(`Moved ${filesToCommit.length} images successfully`);
+    }
+    
+    return {
+      content: content,
+      movedImages: imagesToMove.map(img => img.finalPath)
+    };
+    
+  } catch (e) {
+    Logger.log('Error moving images: ' + e.toString());
+    // Return content as-is if move fails
+    return { content: content, movedImages: [], error: e.message };
+  }
+}
+
+/**
+ * Helper function to escape regex special characters
+ */
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ============================================================================
 // LIST BLOG POSTS
 // ============================================================================
 
@@ -1993,6 +2203,7 @@ function saveDraft(title, content, categories, existingFilename) {
     markdownContent += `---\n\n`;
     
     // Add content (already in markdown format from conversation)
+    // Images in uploads folder will stay there until publish
     markdownContent += content;
     
     // Save to drafts folder

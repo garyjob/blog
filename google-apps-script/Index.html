@@ -290,19 +290,41 @@
             .input-wrapper textarea {
                 font-size: 16px; /* Prevents zoom on iOS */
                 min-height: 120px;
-                padding: 14px;
+                padding: 14px 120px 14px 14px;
                 line-height: 1.5;
             }
             
-            .voice-btn {
+            .voice-btn, .image-btn {
                 width: 48px;
                 height: 48px;
                 font-size: 1.4rem;
             }
             
+            .voice-btn {
+                right: 12px;
+            }
+            
+            .image-btn {
+                right: 66px;
+            }
+            
+            .message-image {
+                max-width: 100%;
+                max-height: 300px;
+            }
+            
+            .input-group {
+                width: 100%;
+            }
+            
+            .input-wrapper {
+                width: 100%;
+            }
+            
             .action-buttons {
                 flex-direction: column;
                 gap: 10px;
+                width: 100%;
             }
             
             .action-buttons .btn {
@@ -482,16 +504,18 @@
             display: flex;
             gap: 10px;
             align-items: flex-end;
+            width: 100%;
         }
         
         .input-wrapper {
             flex: 1;
             position: relative;
+            min-width: 0; /* Allow flexbox to shrink */
         }
         
         .input-wrapper textarea {
             width: 100%;
-            padding: 16px 50px 16px 16px;
+            padding: 16px 110px 16px 16px;
             border: 2px solid var(--border);
             border-radius: 8px;
             font-size: 1.05rem;
@@ -502,6 +526,7 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
+            box-sizing: border-box;
         }
         
         .input-wrapper textarea:focus {
@@ -509,9 +534,8 @@
             border-color: var(--accent);
         }
         
-        .voice-btn {
+        .voice-btn, .image-btn {
             position: absolute;
-            right: 12px;
             bottom: 12px;
             width: 38px;
             height: 38px;
@@ -526,14 +550,29 @@
             font-size: 1.2rem;
             transition: all 0.2s;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+            z-index: 10;
         }
         
-        .voice-btn:hover:not(:disabled) {
+        .voice-btn {
+            right: 12px;
+        }
+        
+        .image-btn {
+            right: 56px;
+            background: var(--success);
+        }
+        
+        .voice-btn:hover:not(:disabled), .image-btn:hover:not(:disabled) {
             background: var(--accent-hover);
             transform: scale(1.1);
         }
         
-        .voice-btn:disabled {
+        .image-btn:hover:not(:disabled) {
+            background: #27ae60;
+        }
+        
+        .voice-btn:disabled, .image-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
@@ -541,6 +580,29 @@
         .voice-btn.recording {
             background: var(--error);
             animation: pulse 1.5s infinite;
+        }
+        
+        .image-btn.uploading {
+            background: var(--accent);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .message-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            margin: 10px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: block;
+        }
+        
+        .message-image-container {
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        #imageInput {
+            display: none;
         }
         
         @keyframes pulse {
@@ -706,10 +768,10 @@
         <div class="header">
             <h1>📝 AI Blog Drafter</h1>
             <div class="header-controls">
-                <button class="btn-icon" onclick="toggleDarkMode()" title="Toggle dark mode">
+                <button class="btn-icon" id="darkModeBtn" title="Toggle dark mode">
                     🌙
                 </button>
-                <button class="btn btn-secondary" onclick="clearChat()">Clear</button>
+                <button class="btn btn-secondary" id="clearChatBtn">Clear</button>
             </div>
         </div>
         
@@ -723,17 +785,17 @@
         <div class="input-area">
             <div id="statusMessage"></div>
             <div class="load-post-section" id="loadPostSection" style="display: none;">
-                <button class="close-load-section" onclick="cancelLoadPost()" title="Close">×</button>
+                <button class="close-load-section" id="closeLoadSectionBtn" title="Close">×</button>
                 <div style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">
                     Select a draft to edit:
                 </div>
                 <div class="load-post-input-group">
-                    <select id="postSelect" onchange="handlePostSelect()" size="6" style="min-height: 150px; max-width: 100%;">
+                    <select id="postSelect" size="6" style="min-height: 150px; max-width: 100%;">
                         <option value="">Loading drafts...</option>
                     </select>
                     <div style="display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
-                        <button class="btn btn-secondary" onclick="loadExistingPost()" id="loadPostBtn" disabled>Load Draft</button>
-                        <button class="btn btn-secondary" onclick="cancelLoadPost()">Cancel</button>
+                        <button class="btn btn-secondary" id="loadPostBtn" disabled>Load Draft</button>
+                        <button class="btn btn-secondary" id="cancelLoadPostBtn">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -743,32 +805,40 @@
                         id="messageInput" 
                         placeholder="Type your message or use voice input..."
                         rows="1"
-                        onkeydown="handleKeyDown(event)"
                     ></textarea>
+                    <input 
+                        type="file" 
+                        id="imageInput" 
+                        accept="image/*"
+                    >
+                    <button 
+                        class="image-btn" 
+                        id="imageBtn" 
+                        title="Upload image"
+                    >
+                        📷
+                    </button>
                     <button 
                         class="voice-btn" 
                         id="voiceBtn" 
-                        onclick="toggleVoiceRecording()"
                         title="Voice input"
                     >
                         🎤
                     </button>
                 </div>
-                <button class="btn btn-primary" onclick="sendMessage()" id="sendBtn">
+                <button class="btn btn-primary" id="sendBtn">
                     Send
                 </button>
             </div>
             <div class="action-buttons">
                 <button 
                     class="btn btn-secondary" 
-                    onclick="showLoadDraft()" 
                     id="loadDraftBtn"
                 >
                     📂 Load Draft
                 </button>
                 <button 
                     class="btn btn-primary" 
-                    onclick="saveDraft()" 
                     id="saveDraftBtn"
                 >
                     <span id="saveDraftBtnText">Save as Draft</span>
@@ -789,12 +859,114 @@
             loadConversation();
             initializeVoiceRecognition();
             initializeDarkMode();
+            attachEventListeners();
+            testImageUploadFunction();
             
             // Enable save draft button if we have conversation history
             if (conversationHistory.length >= 2) {
                 document.getElementById('saveDraftBtn').disabled = false;
             }
         };
+        
+        // Test if image upload function is accessible
+        function testImageUploadFunction() {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    console.log('Image upload function test:', result);
+                })
+                .withFailureHandler(function(error) {
+                    console.error('Image upload function not accessible:', error);
+                    // Show warning but don't block the UI
+                    const imageBtn = document.getElementById('imageBtn');
+                    if (imageBtn) {
+                        imageBtn.title = 'Image upload may not be available. Please redeploy the web app.';
+                    }
+                })
+                .testImageUpload();
+        }
+        
+        // Attach event listeners programmatically (better for Google Apps Script)
+        function attachEventListeners() {
+            // Send button
+            const sendBtn = document.getElementById('sendBtn');
+            if (sendBtn) {
+                sendBtn.addEventListener('click', sendMessage);
+            }
+            
+            // Image upload button
+            const imageBtn = document.getElementById('imageBtn');
+            const imageInput = document.getElementById('imageInput');
+            if (imageBtn && imageInput) {
+                imageBtn.addEventListener('click', function() {
+                    imageInput.click();
+                });
+            }
+            
+            // Image input change
+            if (imageInput) {
+                imageInput.addEventListener('change', handleImageUpload);
+            }
+            
+            // Voice button
+            const voiceBtn = document.getElementById('voiceBtn');
+            if (voiceBtn) {
+                voiceBtn.addEventListener('click', toggleVoiceRecording);
+            }
+            
+            // Message input keydown
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.addEventListener('keydown', handleKeyDown);
+            }
+            
+            // Dark mode button
+            const darkModeBtn = document.getElementById('darkModeBtn');
+            if (darkModeBtn) {
+                darkModeBtn.addEventListener('click', toggleDarkMode);
+            }
+            
+            // Clear chat button
+            const clearChatBtn = document.getElementById('clearChatBtn');
+            if (clearChatBtn) {
+                clearChatBtn.addEventListener('click', clearChat);
+            }
+            
+            // Load draft button
+            const loadDraftBtn = document.getElementById('loadDraftBtn');
+            if (loadDraftBtn) {
+                loadDraftBtn.addEventListener('click', showLoadDraft);
+            }
+            
+            // Save draft button
+            const saveDraftBtn = document.getElementById('saveDraftBtn');
+            if (saveDraftBtn) {
+                saveDraftBtn.addEventListener('click', function() {
+                    saveDraft();
+                });
+            }
+            
+            // Load post section buttons
+            const closeLoadSectionBtn = document.getElementById('closeLoadSectionBtn');
+            if (closeLoadSectionBtn) {
+                closeLoadSectionBtn.addEventListener('click', cancelLoadPost);
+            }
+            
+            const cancelLoadPostBtn = document.getElementById('cancelLoadPostBtn');
+            if (cancelLoadPostBtn) {
+                cancelLoadPostBtn.addEventListener('click', cancelLoadPost);
+            }
+            
+            const loadPostBtn = document.getElementById('loadPostBtn');
+            if (loadPostBtn) {
+                loadPostBtn.addEventListener('click', loadExistingPost);
+            }
+            
+            // Post select dropdown
+            const postSelect = document.getElementById('postSelect');
+            if (postSelect) {
+                postSelect.addEventListener('change', handlePostSelect);
+            }
+        }
         
         // Load conversation from localStorage
         function loadConversation() {
@@ -904,10 +1076,134 @@
         
         // Handle Enter key
         function handleKeyDown(event) {
+            if (!event) return;
             if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
                 sendMessage();
             }
+        }
+        
+        // Handle image upload
+        function handleImageUpload(event) {
+            // Get file from event or directly from input
+            const imageInput = document.getElementById('imageInput');
+            const file = (event && event.target && event.target.files && event.target.files[0]) || 
+                        (imageInput && imageInput.files && imageInput.files[0]);
+            if (!file) return;
+            
+            // Validate file type
+            if (!file.type || file.type.indexOf('image/') !== 0) {
+                showStatus('Please select an image file', 'error');
+                return;
+            }
+            
+            // Validate file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                showStatus('Image file is too large. Maximum size is 10MB.', 'error');
+                return;
+            }
+            
+            // Show uploading state
+            const imageBtn = document.getElementById('imageBtn');
+            imageBtn.classList.add('uploading');
+            imageBtn.disabled = true;
+            showStatus('Uploading image...', 'success');
+            
+            // Read file as base64
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Convert data URL to base64
+                const dataUrl = e.target.result;
+                let base64Data = dataUrl;
+                
+                // Remove data URL prefix if present
+                if (dataUrl && dataUrl.indexOf && dataUrl.indexOf(',') !== -1) {
+                    base64Data = dataUrl.split(',')[1];
+                }
+                
+                // Validate base64 data
+                if (!base64Data || base64Data.length === 0) {
+                    imageBtn.classList.remove('uploading');
+                    imageBtn.disabled = false;
+                    showStatus('Error: Could not read image file', 'error');
+                    document.getElementById('imageInput').value = '';
+                    return;
+                }
+                
+                // Check if base64 data is too large (Google Apps Script has limits)
+                // Max size is around 50MB for UrlFetchApp, but we'll limit to 10MB for safety
+                if (base64Data.length > 10 * 1024 * 1024) {
+                    imageBtn.classList.remove('uploading');
+                    imageBtn.disabled = false;
+                    showStatus('Image file is too large after encoding. Please use a smaller image.', 'error');
+                    document.getElementById('imageInput').value = '';
+                    return;
+                }
+                
+                // Upload to server (pass base64 and metadata)
+                try {
+                    google.script.run
+                        .withSuccessHandler(function(result) {
+                            imageBtn.classList.remove('uploading');
+                            imageBtn.disabled = false;
+                            
+                            if (result && result.success) {
+                                // Add image to conversation
+                                const imageMarkdown = '![' + file.name + '](' + result.url + ')';
+                                
+                                // If there's text in the input, append image to it
+                                const input = document.getElementById('messageInput');
+                                if (input.value.trim()) {
+                                    input.value += '\n\n' + imageMarkdown;
+                                } else {
+                                    // Add as a separate message
+                                    conversationHistory.push({
+                                        role: 'user',
+                                        content: imageMarkdown
+                                    });
+                                    
+                                    // Render image message
+                                    addMessage('user', imageMarkdown, conversationHistory.length - 1);
+                                    saveConversation();
+                                }
+                                
+                                showStatus('Image uploaded successfully!', 'success');
+                                setTimeout(function() {
+                                    showStatus('', '');
+                                }, 2000);
+                            } else {
+                                showStatus('Error uploading image: ' + (result ? result.error : 'Unknown error'), 'error');
+                            }
+                            
+                            // Reset file input
+                            document.getElementById('imageInput').value = '';
+                        })
+                        .withFailureHandler(function(error) {
+                            imageBtn.classList.remove('uploading');
+                            imageBtn.disabled = false;
+                            var errorMsg = error ? (error.message || error.toString()) : 'Unknown error';
+                            showStatus('Error uploading image: ' + errorMsg, 'error');
+                            console.error('Image upload error:', error);
+                            document.getElementById('imageInput').value = '';
+                        })
+                        .uploadImageFromBase64(base64Data, file.name, file.type);
+                } catch (e) {
+                    imageBtn.classList.remove('uploading');
+                    imageBtn.disabled = false;
+                    showStatus('Error: ' + e.message, 'error');
+                    console.error('Exception calling uploadImageFromBase64:', e);
+                    document.getElementById('imageInput').value = '';
+                }
+            };
+            
+            reader.onerror = function() {
+                imageBtn.classList.remove('uploading');
+                imageBtn.disabled = false;
+                showStatus('Error reading image file', 'error');
+                document.getElementById('imageInput').value = '';
+            };
+            
+            reader.readAsDataURL(file);
         }
         
         
@@ -940,10 +1236,13 @@
             saveConversation();
             
             // Show loading
-            const loadingId = addMessage('assistant', '<div class="loading"></div>');
+            const loadingId = addMessage('assistant', 'Loading...');
             const sendBtn = document.getElementById('sendBtn');
             sendBtn.disabled = true;
-            sendBtn.innerHTML = '<div class="loading"></div>';
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            sendBtn.innerHTML = '';
+            sendBtn.appendChild(loadingDiv);
             
             // Call server
             google.script.run
@@ -997,7 +1296,22 @@
             
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
-            contentDiv.innerHTML = formatMessage(content);
+            const formattedContent = formatMessage(content);
+            contentDiv.innerHTML = formattedContent;
+            
+            // Add error handlers to images after they're inserted
+            const images = contentDiv.querySelectorAll('img.message-image');
+            images.forEach(function(img) {
+                img.addEventListener('error', function() {
+                    this.style.display = 'none';
+                    const errorSpan = document.createElement('span');
+                    errorSpan.style.color = 'var(--text-secondary)';
+                    errorSpan.textContent = 'Image failed to load';
+                    if (this.parentElement) {
+                        this.parentElement.appendChild(errorSpan);
+                    }
+                });
+            });
             
             messageDiv.appendChild(avatar);
             messageDiv.appendChild(contentDiv);
@@ -1034,12 +1348,34 @@
         
         // Format message content (markdown-like)
         function formatMessage(content) {
-            // Convert markdown-style formatting to HTML
-            return content
+            if (!content) return '';
+            
+            // Check for loading indicator
+            if (content === 'Loading...') {
+                return '<div class="loading"></div>';
+            }
+            
+            // Convert image markdown first: ![alt](url)
+            let html = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, function(match, alt, url) {
+                // Use raw.githubusercontent.com for preview
+                var fullUrl = url;
+                if (url && url.indexOf && url.indexOf('http') !== 0) {
+                    // It's a relative path, convert to full GitHub raw URL
+                    fullUrl = 'https://raw.githubusercontent.com/garyjob/blog/main/' + url;
+                }
+                // Escape quotes properly for HTML attribute
+                var escapedAlt = (alt || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                return '<div class="message-image-container"><img src="' + fullUrl + '" alt="' + escapedAlt + '" class="message-image"></div>';
+            });
+            
+            // Convert markdown-style formatting to HTML (but preserve images)
+            html = html
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\*(.*?)\*/g, '<em>$1</em>')
                 .replace(/`(.*?)`/g, '<code>$1</code>')
                 .replace(/\n/g, '<br>');
+            
+            return html;
         }
         
         // Render full conversation
@@ -1176,7 +1512,12 @@
             // Disable button
             const saveDraftBtn = document.getElementById('saveDraftBtn');
             saveDraftBtn.disabled = true;
-            saveDraftBtn.innerHTML = '<div class="loading"></div> Saving...';
+            const loadingDiv2 = document.createElement('div');
+            loadingDiv2.className = 'loading';
+            saveDraftBtn.innerHTML = '';
+            saveDraftBtn.appendChild(loadingDiv2);
+            const savingText = document.createTextNode(' Saving...');
+            saveDraftBtn.appendChild(savingText);
             
             // Call server (pass existing filename if editing)
             google.script.run
@@ -1185,7 +1526,7 @@
                         const action = result.isUpdate ? 'Updated' : 'Saved';
                         
                         // Show success message
-                        showStatus(`✅ Draft ${action.toLowerCase()} successfully!`, 'success');
+                        showStatus('✅ Draft ' + action.toLowerCase() + ' successfully!', 'success');
                         setTimeout(() => showStatus('', ''), 3000);
                         
                         // Clear editing state if it was an update
@@ -1270,16 +1611,16 @@
                             const displayTitle = draft.title.length > 60 
                                 ? draft.title.substring(0, 57) + '...' 
                                 : draft.title;
-                            option.textContent = `${draft.date} - ${displayTitle}`;
+                            option.textContent = draft.date + ' - ' + displayTitle;
                             option.title = draft.title; // Full title on hover
                             option.setAttribute('data-title', draft.title);
                             select.appendChild(option);
                         });
                         
                         if (drafts.length > maxDrafts) {
-                            showStatus(`Loaded ${draftsToShow.length} of ${drafts.length} drafts (showing most recent)`, 'success');
+                            showStatus('Loaded ' + draftsToShow.length + ' of ' + drafts.length + ' drafts (showing most recent)', 'success');
                         } else {
-                            showStatus(`Loaded ${drafts.length} drafts`, 'success');
+                            showStatus('Loaded ' + drafts.length + ' drafts', 'success');
                         }
                         setTimeout(() => showStatus('', ''), 2000);
                     } else {
@@ -1347,13 +1688,13 @@
                         // Add the draft content as context
                         conversationHistory.push({
                             role: 'user',
-                            content: `I want to edit this draft:\n\nTitle: ${result.title}\n\nContent:\n${result.content}\n\nCategories: ${result.categories.join(', ')}`
+                            content: 'I want to edit this draft:\n\nTitle: ' + result.title + '\n\nContent:\n' + result.content + '\n\nCategories: ' + result.categories.join(', ')
                         });
                         
                         // Add Grok's acknowledgment
                         conversationHistory.push({
                             role: 'assistant',
-                            content: `Got it! I've loaded your draft "${result.title}". What would you like to change or improve?`
+                            content: 'Got it! I\'ve loaded your draft "' + result.title + '". What would you like to change or improve?'
                         });
                         
                         // Track that we're editing
@@ -1380,7 +1721,7 @@
                         // Enable save draft button
                         document.getElementById('saveDraftBtn').disabled = false;
                         
-                        showStatus(`Loaded: ${result.title}`, 'success');
+                        showStatus('Loaded: ' + result.title, 'success');
                     } else {
                         showStatus('Error: ' + result.error, 'error');
                         loadBtn.disabled = false;
