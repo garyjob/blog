@@ -571,21 +571,6 @@
             </div>
         </div>
         
-        <div id="publishedPostBanner" class="published-post-banner">
-            <h3>✅ Post Published!</h3>
-            <div>
-                <a id="publishedPostLink" href="#" target="_blank" class="published-post-link">
-                    🔗 View Post
-                </a>
-                <button id="regenerateIndexBtn" class="regenerate-index-btn" onclick="regenerateIndex()">
-                    🔄 Update Index
-                </button>
-            </div>
-            <div class="index-status" id="indexStatus">
-                Note: Your post is live! The blog index will be updated separately.
-            </div>
-        </div>
-        
         <div class="chat-container" id="chatContainer">
             <div class="empty-state" id="emptyState">
                 <h2>What's today's post?</h2>
@@ -598,14 +583,14 @@
             <div class="load-post-section" id="loadPostSection" style="display: none;">
                 <button class="close-load-section" onclick="cancelLoadPost()" title="Close">×</button>
                 <div style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">
-                    Select a post to edit:
+                    Select a draft to edit:
                 </div>
                 <div class="load-post-input-group">
                     <select id="postSelect" onchange="handlePostSelect()" size="6" style="min-height: 150px; max-width: 100%;">
-                        <option value="">Loading posts...</option>
+                        <option value="">Loading drafts...</option>
                     </select>
                     <div style="display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
-                        <button class="btn btn-secondary" onclick="loadExistingPost()" id="loadPostBtn" disabled>Load Post</button>
+                        <button class="btn btn-secondary" onclick="loadExistingPost()" id="loadPostBtn" disabled>Load Draft</button>
                         <button class="btn btn-secondary" onclick="cancelLoadPost()">Cancel</button>
                     </div>
                 </div>
@@ -634,17 +619,17 @@
             <div class="action-buttons">
                 <button 
                     class="btn btn-secondary" 
-                    onclick="showLoadPost()" 
-                    id="loadPostBtn"
+                    onclick="showLoadDraft()" 
+                    id="loadDraftBtn"
                 >
-                    📂 Load Existing Post
+                    📂 Load Draft
                 </button>
                 <button 
                     class="btn btn-primary" 
-                    onclick="publishPost()" 
-                    id="publishBtn"
+                    onclick="saveDraft()" 
+                    id="saveDraftBtn"
                 >
-                    <span id="publishBtnText">Publish Post</span>
+                    <span id="saveDraftBtnText">Save as Draft</span>
                 </button>
             </div>
         </div>
@@ -663,9 +648,9 @@
             initializeVoiceRecognition();
             initializeDarkMode();
             
-            // Enable publish button if we have conversation history
+            // Enable save draft button if we have conversation history
             if (conversationHistory.length >= 2) {
-                document.getElementById('publishBtn').disabled = false;
+                document.getElementById('saveDraftBtn').disabled = false;
             }
         };
         
@@ -681,20 +666,20 @@
                     const savedFilename = localStorage.getItem('blogDraftEditingFilename');
                     if (savedFilename) {
                         editingPostFilename = savedFilename;
-                        document.getElementById('publishBtnText').textContent = 'Update Post';
-                        document.getElementById('publishBtn').classList.add('editing-indicator');
-                        if (!document.getElementById('publishBtn').querySelector('.editing-indicator')) {
+                        document.getElementById('saveDraftBtnText').textContent = 'Update Draft';
+                        document.getElementById('saveDraftBtn').classList.add('editing-indicator');
+                        if (!document.getElementById('saveDraftBtn').querySelector('.editing-indicator')) {
                             const indicator = document.createElement('span');
                             indicator.className = 'editing-indicator';
                             indicator.textContent = 'Editing';
                             indicator.style.marginLeft = '10px';
-                            document.getElementById('publishBtn').appendChild(indicator);
+                            document.getElementById('saveDraftBtn').appendChild(indicator);
                         }
                     }
                     
-                    // Enable publish button if we have conversation
+                    // Enable save draft button if we have conversation
                     if (conversationHistory.length >= 2) {
-                        document.getElementById('publishBtn').disabled = false;
+                        document.getElementById('saveDraftBtn').disabled = false;
                     }
                 } catch (e) {
                     console.error('Error loading conversation:', e);
@@ -792,13 +777,6 @@
             if (!message) return;
             
             // Hide published post banner if this is the start of a new conversation
-            // (i.e., conversation is empty or only has the initial prompt)
-            if (conversationHistory.length === 0 || 
-                (conversationHistory.length === 1 && conversationHistory[0].role === 'assistant' && 
-                 conversationHistory[0].content.includes("What's today's post"))) {
-                hidePublishedPostBanner();
-            }
-            
             // Clear any status messages
             showStatus('', '');
             
@@ -843,9 +821,9 @@
                     sendBtn.disabled = false;
                     sendBtn.textContent = 'Send';
                     
-                    // Enable publish button if we have at least one exchange
+                    // Enable save draft button if we have at least one exchange
                     if (conversationHistory.length >= 2) {
-                        document.getElementById('publishBtn').disabled = false;
+                        document.getElementById('saveDraftBtn').disabled = false;
                     }
                 })
                 .withFailureHandler(function(error) {
@@ -978,9 +956,9 @@
                 }
             });
             
-            // Update publish button state
+            // Update save draft button state
             if (conversationHistory.length < 2) {
-                document.getElementById('publishBtn').disabled = true;
+                document.getElementById('saveDraftBtn').disabled = true;
             }
             
             // Save updated conversation
@@ -1002,9 +980,9 @@
             }
         }
         
-        // Publish post
-        function publishPost() {
-            // Check if we have enough conversation to publish
+        // Save draft
+        function saveDraft() {
+            // Check if we have enough conversation to save
             if (conversationHistory.length < 2) {
                 showStatus('Have a conversation with Grok first!', 'error');
                 return;
@@ -1036,7 +1014,7 @@
             // If no title found, use first user message or generate
             if (!title) {
                 const firstUserMsg = conversationHistory.find(m => m.role === 'user');
-                title = firstUserMsg ? firstUserMsg.content.substring(0, 60) : 'New Post';
+                title = firstUserMsg ? firstUserMsg.content.substring(0, 60) : 'New Draft';
             }
             
             // Build content from all messages
@@ -1053,183 +1031,136 @@
                 categories = ['Technology'];
             }
             
-            // Confirm before publishing
-            if (!confirm(`Publish post "${title}"?`)) {
-                return;
-            }
-            
             // Disable button
-            const publishBtn = document.getElementById('publishBtn');
-            publishBtn.disabled = true;
-            publishBtn.innerHTML = '<div class="loading"></div> Publishing...';
+            const saveDraftBtn = document.getElementById('saveDraftBtn');
+            saveDraftBtn.disabled = true;
+            saveDraftBtn.innerHTML = '<div class="loading"></div> Saving...';
             
             // Call server (pass existing filename if editing)
             google.script.run
                 .withSuccessHandler(function(result) {
                     if (result.success) {
-                        const action = result.isUpdate ? 'Updated' : 'Published';
+                        const action = result.isUpdate ? 'Updated' : 'Saved';
                         
-                        // Show persistent published post banner
-                        const banner = document.getElementById('publishedPostBanner');
-                        const link = document.getElementById('publishedPostLink');
-                        const indexStatus = document.getElementById('indexStatus');
-                        
-                        link.href = result.url;
-                        link.textContent = '🔗 View Post: ' + result.filename;
-                        indexStatus.textContent = result.note || 'Your post is live! The blog index will be updated separately.';
-                        
-                        banner.classList.add('show');
-                        
-                        // Also show status message briefly
-                        showStatus(`✅ ${action} successfully!`, 'success');
+                        // Show success message
+                        showStatus(`✅ Draft ${action.toLowerCase()} successfully!`, 'success');
                         setTimeout(() => showStatus('', ''), 3000);
                         
                         // Clear editing state if it was an update
                         if (result.isUpdate) {
                             editingPostFilename = null;
-                            document.getElementById('publishBtnText').textContent = 'Publish Post';
-                            document.getElementById('publishBtn').classList.remove('editing-indicator');
-                            const indicator = document.getElementById('publishBtn').querySelector('.editing-indicator');
+                            document.getElementById('saveDraftBtnText').textContent = 'Save as Draft';
+                            document.getElementById('saveDraftBtn').classList.remove('editing-indicator');
+                            const indicator = document.getElementById('saveDraftBtn').querySelector('.editing-indicator');
                             if (indicator) indicator.remove();
                         }
                         
-                        // Clear conversation after successful publish (only for new posts)
+                        // Clear conversation after successful save (only for new drafts)
                         if (!result.isUpdate) {
                             setTimeout(() => {
                                 clearChat();
-                            }, 3000);
+                            }, 2000);
                         } else {
                             // For updates, just re-enable the button
-                            publishBtn.disabled = false;
-                            publishBtn.innerHTML = '<span id="publishBtnText">Update Post</span>';
+                            saveDraftBtn.disabled = false;
+                            saveDraftBtn.innerHTML = '<span id="saveDraftBtnText">Update Draft</span>';
                             // Keep editing indicator
-                            if (!publishBtn.querySelector('.editing-indicator')) {
+                            if (!saveDraftBtn.querySelector('.editing-indicator')) {
                                 const indicator = document.createElement('span');
                                 indicator.className = 'editing-indicator';
                                 indicator.textContent = 'Editing';
                                 indicator.style.marginLeft = '10px';
-                                publishBtn.appendChild(indicator);
+                                saveDraftBtn.appendChild(indicator);
                             }
                         }
                     } else {
                         showStatus('❌ Error: ' + result.error, 'error');
-                        publishBtn.disabled = false;
-                        publishBtn.innerHTML = '<span id="publishBtnText">' + (editingPostFilename ? 'Update Post' : 'Publish Post') + '</span>';
+                        saveDraftBtn.disabled = false;
+                        saveDraftBtn.innerHTML = '<span id="saveDraftBtnText">' + (editingPostFilename ? 'Update Draft' : 'Save as Draft') + '</span>';
                     }
                 })
                 .withFailureHandler(function(error) {
                     showStatus('❌ Error: ' + error.message, 'error');
-                    publishBtn.disabled = false;
-                    publishBtn.innerHTML = '<span id="publishBtnText">' + (editingPostFilename ? 'Update Post' : 'Publish Post') + '</span>';
+                    saveDraftBtn.disabled = false;
+                    saveDraftBtn.innerHTML = '<span id="saveDraftBtnText">' + (editingPostFilename ? 'Update Draft' : 'Save as Draft') + '</span>';
                 })
-                .publishPost(title, content, categories, editingPostFilename);
+                .saveDraft(title, content, categories, editingPostFilename);
         }
         
-        // Regenerate index.html
-        function regenerateIndex() {
-            const btn = document.getElementById('regenerateIndexBtn');
-            const indexStatus = document.getElementById('indexStatus');
-            
-            btn.disabled = true;
-            btn.textContent = '⏳ Updating...';
-            indexStatus.textContent = 'Updating blog index...';
-            
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    if (result.success) {
-                        indexStatus.textContent = '✅ Index updated successfully!';
-                        showStatus('✅ Blog index updated!', 'success');
-                        setTimeout(() => showStatus('', ''), 3000);
-                    } else {
-                        indexStatus.textContent = '❌ Error: ' + result.error;
-                        showStatus('❌ Error updating index: ' + result.error, 'error');
-                    }
-                    btn.disabled = false;
-                    btn.textContent = '🔄 Update Index';
-                })
-                .withFailureHandler(function(error) {
-                    indexStatus.textContent = '❌ Error: ' + error.message;
-                    showStatus('❌ Error: ' + error.message, 'error');
-                    btn.disabled = false;
-                    btn.textContent = '🔄 Update Index';
-                })
-                .regenerateIndex();
-        }
-        
-        // Show load post section
-        function showLoadPost() {
+        // Show load draft section
+        function showLoadDraft() {
             const section = document.getElementById('loadPostSection');
             section.style.display = 'block';
             
-            // Load list of posts if not already loaded
+            // Load list of drafts if not already loaded
             const select = document.getElementById('postSelect');
             if (select.options.length <= 1) {
-                loadPostList();
+                loadDraftList();
             } else {
                 select.focus();
             }
         }
         
-        // Load list of published posts
-        function loadPostList() {
+        // Load list of drafts
+        function loadDraftList() {
             const select = document.getElementById('postSelect');
             const loadBtn = document.getElementById('loadPostBtn');
             
             // Show loading state
-            select.innerHTML = '<option value="">Loading posts...</option>';
+            select.innerHTML = '<option value="">Loading drafts...</option>';
             select.disabled = true;
             loadBtn.disabled = true;
             loadBtn.textContent = 'Loading...';
             
             google.script.run
-                .withSuccessHandler(function(posts) {
-                    select.innerHTML = '<option value="">Select a post to edit...</option>';
+                .withSuccessHandler(function(drafts) {
+                    select.innerHTML = '<option value="">Select a draft to edit...</option>';
                     
-                    if (posts && posts.length > 0) {
+                    if (drafts && drafts.length > 0) {
                         // Limit to reasonable number for dropdown
-                        const maxPosts = 50;
-                        const postsToShow = posts.slice(0, maxPosts);
+                        const maxDrafts = 50;
+                        const draftsToShow = drafts.slice(0, maxDrafts);
                         
-                        postsToShow.forEach(function(post) {
+                        draftsToShow.forEach(function(draft) {
                             const option = document.createElement('option');
-                            option.value = post.filename;
+                            option.value = draft.filename;
                             // Truncate long titles for display
-                            const displayTitle = post.title.length > 60 
-                                ? post.title.substring(0, 57) + '...' 
-                                : post.title;
-                            option.textContent = `${post.date} - ${displayTitle}`;
-                            option.title = post.title; // Full title on hover
-                            option.setAttribute('data-title', post.title);
+                            const displayTitle = draft.title.length > 60 
+                                ? draft.title.substring(0, 57) + '...' 
+                                : draft.title;
+                            option.textContent = `${draft.date} - ${displayTitle}`;
+                            option.title = draft.title; // Full title on hover
+                            option.setAttribute('data-title', draft.title);
                             select.appendChild(option);
                         });
                         
-                        if (posts.length > maxPosts) {
-                            showStatus(`Loaded ${postsToShow.length} of ${posts.length} posts (showing most recent)`, 'success');
+                        if (drafts.length > maxDrafts) {
+                            showStatus(`Loaded ${draftsToShow.length} of ${drafts.length} drafts (showing most recent)`, 'success');
                         } else {
-                            showStatus(`Loaded ${posts.length} posts`, 'success');
+                            showStatus(`Loaded ${drafts.length} drafts`, 'success');
                         }
                         setTimeout(() => showStatus('', ''), 2000);
                     } else {
-                        select.innerHTML = '<option value="">No posts found</option>';
-                        showStatus('No published posts found', 'error');
+                        select.innerHTML = '<option value="">No drafts found</option>';
+                        showStatus('No drafts found. Create a new draft to get started!', 'success');
                     }
                     
                     select.disabled = false;
                     loadBtn.disabled = false;
-                    loadBtn.textContent = 'Load Post';
+                    loadBtn.textContent = 'Load Draft';
                     select.focus();
                 })
                 .withFailureHandler(function(error) {
-                    select.innerHTML = '<option value="">Error loading posts</option>';
+                    select.innerHTML = '<option value="">Error loading drafts</option>';
                     showStatus('Error: ' + error.message, 'error');
                     select.disabled = false;
                     loadBtn.disabled = false;
-                    loadBtn.textContent = 'Load Post';
+                    loadBtn.textContent = 'Load Draft';
                 })
-                .getPublishedPosts();
+                .listDrafts();
         }
         
-        // Handle post selection
+        // Handle draft selection
         function handlePostSelect() {
             const select = document.getElementById('postSelect');
             const loadBtn = document.getElementById('loadPostBtn');
@@ -1240,7 +1171,7 @@
             }
         }
         
-        // Cancel loading post
+        // Cancel loading draft
         function cancelLoadPost() {
             document.getElementById('loadPostSection').style.display = 'none';
             document.getElementById('postSelect').selectedIndex = 0;
@@ -1248,18 +1179,18 @@
             showStatus('', '');
         }
         
-        // Load existing post
+        // Load existing draft
         function loadExistingPost() {
             const select = document.getElementById('postSelect');
             const filename = select.value;
             
             if (!filename) {
-                showStatus('Please select a post', 'error');
+                showStatus('Please select a draft', 'error');
                 return;
             }
             
             // Show loading
-            showStatus('Loading post...', 'success');
+            showStatus('Loading draft...', 'success');
             const loadBtn = document.querySelector('.load-post-section .btn');
             loadBtn.disabled = true;
             loadBtn.textContent = 'Loading...';
@@ -1268,36 +1199,33 @@
             google.script.run
                 .withSuccessHandler(function(result) {
                     if (result.success) {
-                        // Hide published post banner when loading a post to edit
-                        hidePublishedPostBanner();
-                        
                         // Clear current conversation
                         conversationHistory = [];
                         
-                        // Add the post content as context
+                        // Add the draft content as context
                         conversationHistory.push({
                             role: 'user',
-                            content: `I want to edit this existing blog post:\n\nTitle: ${result.title}\n\nContent:\n${result.content}\n\nCategories: ${result.categories.join(', ')}`
+                            content: `I want to edit this draft:\n\nTitle: ${result.title}\n\nContent:\n${result.content}\n\nCategories: ${result.categories.join(', ')}`
                         });
                         
                         // Add Grok's acknowledgment
                         conversationHistory.push({
                             role: 'assistant',
-                            content: `Got it! I've loaded your post "${result.title}". What would you like to change or improve?`
+                            content: `Got it! I've loaded your draft "${result.title}". What would you like to change or improve?`
                         });
                         
                         // Track that we're editing
                         editingPostFilename = result.filename;
                         
                         // Update UI
-                        document.getElementById('publishBtnText').textContent = 'Update Post';
-                        document.getElementById('publishBtn').classList.add('editing-indicator');
-                        if (!document.getElementById('publishBtn').querySelector('.editing-indicator')) {
+                        document.getElementById('saveDraftBtnText').textContent = 'Update Draft';
+                        document.getElementById('saveDraftBtn').classList.add('editing-indicator');
+                        if (!document.getElementById('saveDraftBtn').querySelector('.editing-indicator')) {
                             const indicator = document.createElement('span');
                             indicator.className = 'editing-indicator';
                             indicator.textContent = 'Editing';
                             indicator.style.marginLeft = '10px';
-                            document.getElementById('publishBtn').appendChild(indicator);
+                            document.getElementById('saveDraftBtn').appendChild(indicator);
                         }
                         
                         // Render conversation
@@ -1307,30 +1235,22 @@
                         // Hide load section
                         cancelLoadPost();
                         
-                        // Enable publish button
-                        document.getElementById('publishBtn').disabled = false;
+                        // Enable save draft button
+                        document.getElementById('saveDraftBtn').disabled = false;
                         
                         showStatus(`Loaded: ${result.title}`, 'success');
                     } else {
                         showStatus('Error: ' + result.error, 'error');
                         loadBtn.disabled = false;
-                        loadBtn.textContent = 'Load Post';
+                        loadBtn.textContent = 'Load Draft';
                     }
                 })
                 .withFailureHandler(function(error) {
                     showStatus('Error: ' + error.message, 'error');
                     loadBtn.disabled = false;
-                    loadBtn.textContent = 'Load Post';
+                    loadBtn.textContent = 'Load Draft';
                 })
-                .loadExistingPost(filename);
-        }
-        
-        // Hide published post banner (when starting new post)
-        function hidePublishedPostBanner() {
-            const banner = document.getElementById('publishedPostBanner');
-            if (banner) {
-                banner.classList.remove('show');
-            }
+                .loadExistingDraft(filename);
         }
         
         // Clear chat
@@ -1338,17 +1258,15 @@
             if (confirm('Clear conversation?')) {
                 conversationHistory = [];
                 editingPostFilename = null;
-                document.getElementById('publishBtnText').textContent = 'Publish Post';
-                document.getElementById('publishBtn').classList.remove('editing-indicator');
-                const indicator = document.getElementById('publishBtn').querySelector('.editing-indicator');
+                document.getElementById('saveDraftBtnText').textContent = 'Save as Draft';
+                document.getElementById('saveDraftBtn').classList.remove('editing-indicator');
+                const indicator = document.getElementById('saveDraftBtn').querySelector('.editing-indicator');
                 if (indicator) indicator.remove();
                 localStorage.removeItem('blogDraftEditingFilename');
                 saveConversation();
                 renderConversation();
-                document.getElementById('publishBtn').disabled = true;
+                document.getElementById('saveDraftBtn').disabled = true;
                 showStatus('', '');
-                // Hide published post banner when starting fresh
-                hidePublishedPostBanner();
             }
         }
         

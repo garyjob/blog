@@ -1507,6 +1507,91 @@ function listBlogPosts() {
 // ============================================================================
 
 /**
+ * Lists all drafts from the drafts folder
+ * @return {Array} Array of {filename, title, date} objects
+ */
+function listDrafts() {
+  const token = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
+  const owner = PropertiesService.getScriptProperties().getProperty('GITHUB_OWNER') || 'garyjob';
+  const repo = PropertiesService.getScriptProperties().getProperty('GITHUB_REPO') || 'blog';
+  const branch = PropertiesService.getScriptProperties().getProperty('GITHUB_BRANCH') || 'main';
+  
+  if (!token || token === 'your-github-token-here') {
+    throw new Error('GITHUB_TOKEN not configured. Run setupProperties() first.');
+  }
+  
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/drafts?ref=${branch}`;
+  
+  try {
+    const response = UrlFetchApp.fetch(url, {
+      headers: {
+        'Authorization': 'token ' + token,
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      muteHttpExceptions: true
+    });
+    
+    if (response.getResponseCode() === 200) {
+      const data = JSON.parse(response.getContentText());
+      // Filter for .html files that look like blog posts
+      const drafts = data
+        .filter(file => file.type === 'file' && file.name.match(/^\d{4}-\d{2}-\d{2}-.+\.html$/i))
+        .map(file => {
+          // Extract date from filename
+          const dateMatch = file.name.match(/(\d{4}-\d{2}-\d{2})/);
+          return {
+            filename: file.name,
+            draftPath: `drafts/${file.name}`,
+            date: dateMatch ? dateMatch[1] : 'Unknown'
+          };
+        });
+      
+      // Fetch titles for each draft
+      const draftsWithTitles = drafts.map(draft => {
+        try {
+          const draftContent = fetchGitHubFile(draft.draftPath);
+          if (draftContent) {
+            const titleMatch = draftContent.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+            if (titleMatch) {
+              draft.title = titleMatch[1].trim();
+            } else {
+              const titleTagMatch = draftContent.match(/<title[^>]*>([^<]+)<\/title>/i);
+              if (titleTagMatch) {
+                draft.title = titleTagMatch[1].replace(/\s*-\s*Gary Teh's Blog.*$/i, '').trim();
+              } else {
+                draft.title = draft.filename.replace(/\.html$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+              }
+            }
+          } else {
+            draft.title = draft.filename.replace(/\.html$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+          }
+        } catch (e) {
+          Logger.log('Error fetching title for ' + draft.filename + ': ' + e.toString());
+          draft.title = draft.filename.replace(/\.html$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+        }
+        return draft;
+      });
+      
+      // Sort by date (newest first)
+      draftsWithTitles.sort((a, b) => b.date.localeCompare(a.date));
+      
+      Logger.log('Found ' + draftsWithTitles.length + ' drafts');
+      return draftsWithTitles;
+      
+    } else if (response.getResponseCode() === 404) {
+      // Drafts folder doesn't exist yet - return empty array
+      Logger.log('Drafts folder does not exist yet');
+      return [];
+    } else {
+      throw new Error('GitHub API error: ' + response.getResponseCode());
+    }
+  } catch (e) {
+    Logger.log('Error listing drafts: ' + e.toString());
+    throw new Error('Failed to list drafts from GitHub: ' + e.message);
+  }
+}
+
+/**
  * Gets list of all published blog posts from index.html
  * @return {Array} Array of {filename, title, date} objects
  */
@@ -1581,17 +1666,26 @@ function getPublishedPosts() {
 }
 
 /**
- * Loads an existing blog post from GitHub for editing
- * @param {string} filename - Post filename (e.g., "2025-12-02-title.html")
- * @return {Object} Post data {title, content, categories, date, filename}
+ * Loads an existing draft from GitHub for editing
+ * @param {string} filename - Draft filename (e.g., "2025-12-02-title.html" or "drafts/2025-12-02-title.html")
+ * @return {Object} Draft data {title, content, categories, date, filename}
  */
-function loadExistingPost(filename) {
+function loadExistingDraft(filename) {
   try {
-    // Fetch the post file from GitHub
-    const postHTML = fetchGitHubFile(filename);
-    if (!postHTML) {
-      throw new Error('Post not found: ' + filename);
+    // Ensure filename has drafts/ prefix
+    let draftPath = filename;
+    if (!draftPath.startsWith('drafts/')) {
+      draftPath = `drafts/${filename}`;
     }
+    
+    // Fetch the draft file from GitHub
+    const postHTML = fetchGitHubFile(draftPath);
+    if (!postHTML) {
+      throw new Error('Draft not found: ' + draftPath);
+    }
+    
+    // Extract just the filename without drafts/ prefix for return
+    const justFilename = filename.replace(/^drafts\//, '');
     
     // Extract title from <h1> or <title>
     let title = '';
@@ -1672,6 +1766,117 @@ function loadExistingPost(filename) {
       content: content,
       categories: categories,
       date: date,
+      filename: justFilename,
+      draftPath: draftPath
+    };
+    
+  } catch (e) {
+    Logger.log('Error loading draft: ' + e.toString());
+    return {
+      success: false,
+      error: e.message
+    };
+  }
+}
+
+/**
+ * Loads an existing blog post from GitHub for editing
+ * @deprecated Use loadExistingDraft() instead - we now work with drafts
+ * @param {string} filename - Post filename (e.g., "2025-12-02-title.html")
+ * @return {Object} Post data {title, content, categories, date, filename}
+ */
+function loadExistingPost(filename) {
+  // Try to load as draft first
+  const draftResult = loadExistingDraft(filename);
+  if (draftResult.success) {
+    return draftResult;
+  }
+  
+  // Fallback to loading from root (for backward compatibility)
+  try {
+    const postHTML = fetchGitHubFile(filename);
+    if (!postHTML) {
+      throw new Error('Post not found: ' + filename);
+    }
+    
+    // Extract title from <h1> or <title>
+    let title = '';
+    const titleMatch = postHTML.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+    if (titleMatch) {
+      title = titleMatch[1].trim();
+    } else {
+      const titleTagMatch = postHTML.match(/<title[^>]*>([^<]+)<\/title>/i);
+      if (titleTagMatch) {
+        title = titleTagMatch[1].replace(/\s*-\s*Gary Teh's Blog.*$/i, '').trim();
+      }
+    }
+    
+    // Extract content from <div class="content">
+    let content = '';
+    const contentMatch = postHTML.match(/<div class="content">([\s\S]*?)<\/div>\s*<footer/i);
+    if (contentMatch) {
+      content = contentMatch[1].trim();
+      // Convert HTML back to markdown-like text for editing
+      content = content
+        .replace(/<p>/g, '')
+        .replace(/<\/p>/g, '\n\n')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<strong>(.*?)<\/strong>/g, '**$1**')
+        .replace(/<em>(.*?)<\/em>/g, '*$1*')
+        .replace(/<h2>(.*?)<\/h2>/g, '\n## $1\n')
+        .replace(/<h3>(.*?)<\/h3>/g, '\n### $1\n')
+        .replace(/<ul>[\s\S]*?<\/ul>/g, function(match) {
+          return match.replace(/<li>(.*?)<\/li>/g, '- $1\n');
+        })
+        .replace(/<ol>[\s\S]*?<\/ol>/g, function(match) {
+          let counter = 1;
+          return match.replace(/<li>(.*?)<\/li>/g, function() {
+            return counter++ + '. $1\n';
+          });
+        })
+        .replace(/<code>(.*?)<\/code>/g, '`$1`')
+        .replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/g, '```\n$1\n```')
+        .replace(/<a href="([^"]+)">([^<]+)<\/a>/g, '[$2]($1)')
+        .replace(/<[^>]+>/g, '') // Remove any remaining HTML tags
+        .replace(/\n{3,}/g, '\n\n') // Clean up multiple newlines
+        .trim();
+    }
+    
+    // Extract categories from category-tag spans
+    const categories = [];
+    const categoryMatches = postHTML.matchAll(/<span class="category-tag">([^<]+)<\/span>/g);
+    for (const match of categoryMatches) {
+      categories.push(match[1].trim());
+    }
+    
+    // Extract date from post-date span or filename
+    let date = '';
+    const dateMatch = postHTML.match(/<span class="post-date">([^<]+)<\/span>/i);
+    if (dateMatch) {
+      // Try to parse the date and convert to YYYY-MM-DD
+      const dateStr = dateMatch[1].trim();
+      const dateObj = new Date(dateStr);
+      if (!isNaN(dateObj.getTime())) {
+        date = dateObj.getFullYear() + '-' + 
+               String(dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+               String(dateObj.getDate()).padStart(2, '0');
+      }
+    }
+    
+    // If no date found, try to extract from filename
+    if (!date) {
+      const filenameDateMatch = filename.match(/(\d{4}-\d{2}-\d{2})/);
+      if (filenameDateMatch) {
+        date = filenameDateMatch[1];
+      }
+    }
+    
+    return {
+      success: true,
+      title: title,
+      content: content,
+      categories: categories,
+      date: date,
       filename: filename
     };
     
@@ -1689,28 +1894,29 @@ function loadExistingPost(filename) {
 // ============================================================================
 
 /**
- * Main publish function - generates post, updates index, commits to GitHub
+ * Saves a draft to the drafts folder
  * @param {string} title - Post title
  * @param {string} content - Post content (HTML)
  * @param {Array} categories - Array of category strings
- * @param {string} existingFilename - Optional: filename of existing post to update
- * @return {Object} Result with success status and URL
+ * @param {string} existingFilename - Optional: filename of existing draft to update
+ * @return {Object} Result with success status
  */
-function publishPost(title, content, categories, existingFilename) {
+function saveDraft(title, content, categories, existingFilename) {
   try {
     let filename;
     let dateStr;
     let isUpdate = false;
     
     if (existingFilename) {
-      // Updating existing post
-      filename = existingFilename;
+      // Updating existing draft
+      // Remove 'drafts/' prefix if present
+      filename = existingFilename.replace(/^drafts\//, '');
       isUpdate = true;
       // Extract date from filename
       const dateMatch = filename.match(/(\d{4}-\d{2}-\d{2})/);
       dateStr = dateMatch ? dateMatch[1] : new Date().toISOString().split('T')[0];
     } else {
-      // Creating new post
+      // Creating new draft
       const date = new Date();
       dateStr = date.getFullYear() + '-' + 
                String(date.getMonth() + 1).padStart(2, '0') + '-' + 
@@ -1725,56 +1931,62 @@ function publishPost(title, content, categories, existingFilename) {
     // Generate post HTML
     const postHTML = generatePostHTML(title, content, dateStr, categories);
     
-    // Get current index.html
-    const indexContent = fetchGitHubFile('index.html');
-    if (!indexContent) {
-      throw new Error('Failed to fetch index.html');
-    }
+    // Save to drafts folder
+    const draftPath = `drafts/${filename}`;
     
-    // Get SHAs for files
-    const postSHA = getGitHubFileSHA(filename); // Will be null for new files
-    const indexSHA = getGitHubFileSHA('index.html');
+    // Get SHA if updating existing draft
+    const draftSHA = getGitHubFileSHA(draftPath);
     
-    // Prepare files for commit
+    // Prepare file for commit
     const files = [
       {
-        path: filename,
+        path: draftPath,
         content: postHTML,
-        sha: postSHA // null for new, SHA for update
+        sha: draftSHA // null for new, SHA for update
       }
     ];
     
-    // NOTE: We're NOT updating index.html here - that's done separately via regenerateIndex()
-    // This makes publishing much faster. The post is immediately accessible via direct URL.
-    Logger.log('Publishing post file only (index.html will be regenerated separately)');
+    Logger.log('Saving draft to: ' + draftPath);
     
-    // Commit to GitHub (only the post file, not index.html)
+    // Commit to GitHub
     const commitMessage = isUpdate 
-      ? `Auto-updated: ${title} via Grok`
-      : `Auto-published: ${title} via Grok`;
-    
-    Logger.log('Committing post file to GitHub: ' + filename);
+      ? `Draft updated: ${title} via Grok`
+      : `Draft saved: ${title} via Grok`;
     
     const result = commitToGitHub(files, commitMessage);
     
-    Logger.log('Commit result: ' + JSON.stringify(result));
+    Logger.log('Draft saved: ' + JSON.stringify(result));
     
     return {
       success: true,
       filename: filename,
-      url: `https://garyteh.com/${filename}`,
-      message: isUpdate ? 'Post updated successfully! Index will be updated separately.' : 'Post published! Index will be updated separately.',
+      draftPath: draftPath,
+      message: isUpdate ? 'Draft updated successfully!' : 'Draft saved successfully!',
       isUpdate: isUpdate,
-      note: 'Your post is live! The blog index will be updated in the background.'
+      note: 'Draft saved to drafts folder. You can review and publish it later.'
     };
     
   } catch (e) {
-    Logger.log('Publish error: ' + e.toString());
+    Logger.log('Save draft error: ' + e.toString());
     return {
       success: false,
       error: e.message
     };
   }
+}
+
+/**
+ * Main publish function - generates post, updates index, commits to GitHub
+ * @deprecated Use saveDraft() instead - drafts are saved for review before publishing
+ * @param {string} title - Post title
+ * @param {string} content - Post content (HTML)
+ * @param {Array} categories - Array of category strings
+ * @param {string} existingFilename - Optional: filename of existing post to update
+ * @return {Object} Result with success status and URL
+ */
+function publishPost(title, content, categories, existingFilename) {
+  // Redirect to saveDraft for now
+  return saveDraft(title, content, categories, existingFilename);
 }
 
 /**
