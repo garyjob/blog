@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Building an AI-Powered Blog Editor with Grok and Google Apps Script - How I built a conversational blog editor powered by Grok AI, accessible from anywhere">
+    <title>Building an AI-Powered Blog Editor with Grok and Google Apps Script - Gary Teh's Blog</title>
+    
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://garyteh.com/2025-12-02-building-an-ai-powered-blog-editor-with-grok-and-google-apps-script.html">
+    <meta property="og:title" content="Building an AI-Powered Blog Editor with Grok and Google Apps Script">
+    <meta property="og:description" content="How I built a conversational blog editor powered by Grok AI, accessible from anywhere, that lets me draft posts through conversation.">
+    <meta property="og:site_name" content="Gary Teh's Blog">
+    <meta property="article:published_time" content="2025-12-02T00:00:00+00:00">
+    <meta property="article:author" content="Gary Teh">
+    <meta property="article:tag" content="Technology">
+    <meta property="article:tag" content="AI">
+    <meta property="article:tag" content="Startups">
+    <meta property="article:tag" content="Productivity">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:url" content="https://garyteh.com/2025-12-02-building-an-ai-powered-blog-editor-with-grok-and-google-apps-script.html">
+    <meta name="twitter:title" content="Building an AI-Powered Blog Editor with Grok and Google Apps Script">
+    <meta name="twitter:description" content="How I built a conversational blog editor powered by Grok AI, accessible from anywhere, that lets me draft posts through conversation.">
+    
+    <!-- Additional meta for better sharing -->
+    <meta name="author" content="Gary Teh">
+    <link rel="canonical" href="https://garyteh.com/2025-12-02-building-an-ai-powered-blog-editor-with-grok-and-google-apps-script.html">
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag, a.category-tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+            color: #2c3e50;
+            text-decoration: none;
+        }
+        a.category-tag:hover {
+            background: #3498db;
+            color: white;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>Building an AI-Powered Blog Editor with Grok and Google Apps Script</h1>
+            <div class="post-meta">
+                <span class="post-date">December 2, 2025</span>
+                <a href="categories/technology.html" class="category-tag">Technology</a>
+                <a href="categories/ai.html" class="category-tag">AI</a>
+                <a href="categories/startups.html" class="category-tag">Startups</a>
+                <a href="categories/productivity.html" class="category-tag">Productivity</a>
+            </div>
+        </div>
+
+        <div class="content">
+<p>I've been thinking about this for a while—how do you make the act of writing less friction, more natural? Today, I finally built something that feels right: a blog editor powered by Grok AI, accessible from anywhere, that lets me draft posts through conversation.</p>
+
+<h2>The Setup</h2>
+
+<p>The system lives in a Google Apps Script web app, accessible at <code>garyteh.com/admin</code>. It's a simple interface—chat box, voice input, and a camera button for images. But behind that simplicity is a workflow that's changed how I think about writing.</p>
+
+<p>Here's how it works: I start with a prompt like "What's today's post?" Grok responds, and we go back and forth. I can speak my thoughts (voice-to-text), type them, or even attach images. The conversation builds the post organically. When it feels done, I save it as a draft. Later, when I'm ready, I convert that draft into a published blog post.</p>
+
+<h2>The Technical Stack</h2>
+
+<p>The whole thing is open source and lives on GitHub: <a href="https://github.com/garyjob/blog/">https://github.com/garyjob/blog/</a></p>
+
+<p>The architecture is straightforward:</p>
+<ul>
+<li><strong>Frontend</strong>: HTML/CSS/JavaScript served by Google Apps Script's HTML Service</li>
+<li><strong>AI</strong>: Grok API (x.ai) for conversation and content generation</li>
+<li><strong>Storage</strong>: GitHub repository for drafts and published posts</li>
+<li><strong>Deployment</strong>: GitHub Pages for the blog itself</li>
+</ul>
+
+<h2>Key Features</h2>
+
+<p><strong>Voice Input</strong>: The Web Speech API transcribes my spoken words directly into the chat. No typing needed when I'm on the move.</p>
+
+<p><strong>Image Upload</strong>: I can attach images during the conversation. They upload to GitHub in a temporary <code>images/uploads/</code> folder, then automatically move to the final location when I publish the post. Images persist in drafts, so I can see them when I reload later.</p>
+
+<p><strong>Draft Management</strong>: Everything saves as markdown files in a <code>drafts/</code> folder. Frontmatter stores title, date, and categories. When I'm ready to publish, the system converts markdown to HTML, pulls a template from an existing post, and generates the final blog post.</p>
+
+<p><strong>Category System</strong>: Each category gets its own listing page. When I tag a post with categories, they link to those pages automatically. The system generates category pages dynamically, grouping posts by year.</p>
+
+<p><strong>Mobile-First Design</strong>: The interface works on mobile. Font sizes are tuned to prevent iOS auto-zoom, buttons are touch-friendly, and the layout adapts to small screens.</p>
+
+<h2>The Workflow</h2>
+
+<ol>
+<li>Open <code>garyteh.com/admin</code> on my phone or laptop</li>
+<li>Start a conversation with Grok about what I want to write</li>
+<li>Attach images if needed—they appear inline in the chat</li>
+<li>Refine the content through back-and-forth with Grok</li>
+<li>Save as draft (markdown file in <code>drafts/</code> folder)</li>
+<li>Later, convert draft to published HTML post</li>
+<li>Images automatically move from <code>uploads/</code> to final location</li>
+<li>Post appears on the blog</li>
+</ol>
+
+<h2>What Makes It Different</h2>
+
+<p>Most blog editors feel like word processors. This feels like talking to an editor who gets your voice. Grok is trained on my writing style—conversational, reflective, sometimes philosophical. It suggests categories, helps structure thoughts, and knows when to ask questions versus when to say "Looks done—want to publish?"</p>
+
+<p>The draft system means I can start posts, save them, and come back later. Images persist. The conversation history is stored client-side, so I can edit my inputs and reshape the conversation.</p>
+
+<h2>The Code</h2>
+
+<p>The main components are:</p>
+<ul>
+<li><code>google-apps-script/Code.gs</code> - Server-side logic (Grok API, GitHub integration, HTML generation)</li>
+<li><code>google-apps-script/Index.html</code> - Client-side UI (chat interface, voice input, image upload)</li>
+<li>Draft files in <code>drafts/</code> folder (markdown with frontmatter)</li>
+<li>Published posts as HTML files in the root</li>
+</ul>
+
+<p>Everything is version-controlled on GitHub, so I can see the history of changes, and GitHub Pages automatically rebuilds when I push updates.</p>
+
+<h2>Reflections</h2>
+
+<p>This isn't just about making writing easier—it's about making it more natural. Voice input means I can capture thoughts while walking. Image upload means I can include visuals without switching tools. The draft system means I can start posts and finish them later without losing context.</p>
+
+<p>The category system emerged organically. As I built it, I realized how useful it would be to browse posts by topic. Now every category has its own page, and posts link to them automatically.</p>
+
+<h2>What's Next</h2>
+
+<p>The system is working, but there's always room to improve. I'm thinking about:</p>
+<ul>
+<li>Better image optimization before upload</li>
+<li>Automatic image alt-text generation</li>
+<li>Draft preview before publishing</li>
+<li>Batch operations for managing multiple drafts</li>
+</ul>
+
+<p>But for now, it works. I can draft posts from my phone, include images, and publish when ready. The friction is gone.</p>
+
+<h2>Try It Yourself</h2>
+
+<p>The code is open source: <a href="https://github.com/garyjob/blog/">https://github.com/garyjob/blog/</a></p>
+
+<p>The <code>google-apps-script/</code> folder contains everything you need. Set up your Grok API key, GitHub token, and deploy. The system will handle the rest.</p>
+
+<p>What about you—how do you handle the friction between having an idea and getting it published? What tools make writing feel natural for you?</p>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2025</p>
+        </footer>
+    </div>
+    <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/f4002ef7c62ee64494321ba14/9c56fa20706b0138cf6fea672.js");</script>
+</body>
+</html>
