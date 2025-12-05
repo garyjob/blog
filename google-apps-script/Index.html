@@ -211,10 +211,66 @@
             opacity: 1;
         }
         
+        .message.assistant:hover .message-actions,
+        .message.assistant:active .message-actions {
+            opacity: 1;
+        }
+        
+        .listen-btn {
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            color: var(--text-primary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .listen-btn:hover {
+            background: rgba(52, 152, 219, 0.3);
+        }
+        
+        .listen-btn.playing {
+            background: rgba(39, 174, 96, 0.2);
+            border-color: rgba(39, 174, 96, 0.5);
+            color: var(--success);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .speech-speed-controls {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+            align-items: center;
+        }
+        
+        .speed-btn {
+            background: rgba(52, 152, 219, 0.15);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            color: var(--text-primary);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 36px;
+        }
+        
+        .speed-btn:hover {
+            background: rgba(52, 152, 219, 0.25);
+        }
+        
+        .speed-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        
         @media (max-width: 600px) {
             body {
                 padding: 5px;
-                font-size: 16px; /* Prevent zoom on iOS */
+                font-size: 20px; /* Much larger base font for comfortable reading */
             }
             
             .container {
@@ -263,14 +319,32 @@
             }
             
             .message-content {
-                padding: 14px 18px;
-                font-size: 1rem;
-                line-height: 1.6;
+                padding: 16px 20px;
+                font-size: 1.3rem; /* ~26px - much larger for comfortable reading without squinting */
+                line-height: 1.8; /* Increased line spacing for better readability */
                 max-width: 90%;
             }
             
             .message-actions {
                 opacity: 1; /* Always visible on mobile for easier tapping */
+            }
+            
+            .listen-btn {
+                padding: 8px 12px;
+                font-size: 1rem;
+                min-height: 40px;
+            }
+            
+            .speech-speed-controls {
+                gap: 6px;
+                margin-top: 10px;
+            }
+            
+            .speed-btn {
+                padding: 6px 12px;
+                font-size: 0.9rem;
+                min-height: 36px;
+                min-width: 44px;
             }
             
             .edit-btn {
@@ -343,12 +417,12 @@
             }
             
             .message-content pre {
-                font-size: 0.85rem;
+                font-size: 0.95rem; /* Larger code blocks for mobile */
                 padding: 12px;
             }
             
             .message-content code {
-                font-size: 0.9em;
+                font-size: 0.95em; /* Larger inline code for mobile */
                 padding: 2px 4px;
             }
         }
@@ -853,6 +927,8 @@
         let isRecording = false;
         let recognition = null;
         let editingPostFilename = null; // Track if we're editing an existing post
+        let currentSpeech = null; // Track current speech synthesis
+        let currentSpeakingMessageId = null; // Track which message is being read
         
         // Initialize
         window.onload = function() {
@@ -861,6 +937,10 @@
             initializeDarkMode();
             attachEventListeners();
             testImageUploadFunction();
+            
+            // Sync all speed controls to reflect saved preference
+            const savedSpeed = getSpeechSpeed();
+            updateAllSpeedButtons(savedSpeed);
             
             // Enable save draft button if we have conversation history
             if (conversationHistory.length >= 2) {
@@ -1330,6 +1410,53 @@
                 messageDiv.appendChild(actionsDiv);
             }
             
+            // Add listen button for assistant messages
+            if (role === 'assistant') {
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'message-actions';
+                
+                const listenBtn = document.createElement('button');
+                listenBtn.className = 'listen-btn';
+                listenBtn.textContent = '🔊 Listen';
+                listenBtn.setAttribute('data-message-id', messageId);
+                listenBtn.onclick = function() {
+                    const currentSpeed = getSpeechSpeed();
+                    toggleSpeech(content, messageId, listenBtn, currentSpeed);
+                };
+                actionsDiv.appendChild(listenBtn);
+                
+                // Add speed controls
+                const speedControls = document.createElement('div');
+                speedControls.className = 'speech-speed-controls';
+                speedControls.setAttribute('data-message-id', messageId);
+                
+                const speeds = [1, 1.5, 2];
+                speeds.forEach(function(speed) {
+                    const speedBtn = document.createElement('button');
+                    speedBtn.className = 'speed-btn';
+                    speedBtn.textContent = speed + 'X';
+                    speedBtn.setAttribute('data-speed', speed);
+                    speedBtn.onclick = function() {
+                        setSpeechSpeed(speed);
+                        // Update ALL speed controls across all messages to show the new preference
+                        updateAllSpeedButtons(speed);
+                        // If currently playing this message, restart with new speed
+                        if (currentSpeakingMessageId === messageId && currentSpeech) {
+                            window.speechSynthesis.cancel();
+                            toggleSpeech(content, messageId, listenBtn, speed);
+                        }
+                    };
+                    speedControls.appendChild(speedBtn);
+                });
+                
+                // Set initial active button based on saved preference
+                const savedSpeed = getSpeechSpeed();
+                updateSpeedButtons(speedControls, savedSpeed);
+                
+                actionsDiv.appendChild(speedControls);
+                messageDiv.appendChild(actionsDiv);
+            }
+            
             container.appendChild(messageDiv);
             
             // Scroll to bottom
@@ -1785,6 +1912,136 @@
             if (btn) {
                 btn.textContent = theme === 'dark' ? '☀️' : '🌙';
             }
+        }
+        
+        // Text-to-speech functionality
+        function toggleSpeech(text, messageId, button, speed) {
+            // Default to 1.0 if speed not provided
+            speed = speed || getSpeechSpeed();
+            // If we're already speaking this message, stop it
+            if (currentSpeakingMessageId === messageId && currentSpeech) {
+                window.speechSynthesis.cancel();
+                currentSpeech = null;
+                currentSpeakingMessageId = null;
+                updateListenButton(button, false);
+                return;
+            }
+            
+            // If we're speaking a different message, stop it first
+            if (currentSpeech && currentSpeakingMessageId !== messageId) {
+                window.speechSynthesis.cancel();
+                // Update the previous button
+                const prevButton = document.querySelector(`[data-message-id="${currentSpeakingMessageId}"]`);
+                if (prevButton) {
+                    updateListenButton(prevButton, false);
+                }
+            }
+            
+            // Check if speech synthesis is supported
+            if (!('speechSynthesis' in window)) {
+                showStatus('Text-to-speech is not supported in this browser', 'error');
+                return;
+            }
+            
+            // Clean the text - remove markdown formatting and HTML tags
+            let cleanText = text;
+            
+            // Remove markdown images
+            cleanText = cleanText.replace(/!\[([^\]]*)\]\([^)]+\)/g, '');
+            
+            // Remove markdown formatting
+            cleanText = cleanText.replace(/\*\*(.*?)\*\*/g, '$1'); // Bold
+            cleanText = cleanText.replace(/\*(.*?)\*/g, '$1'); // Italic
+            cleanText = cleanText.replace(/`(.*?)`/g, '$1'); // Code
+            cleanText = cleanText.replace(/#{1,6}\s+/g, ''); // Headers
+            cleanText = cleanText.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'); // Links
+            
+            // Remove HTML tags if any
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = cleanText;
+            cleanText = tempDiv.textContent || tempDiv.innerText || '';
+            
+            // Clean up extra whitespace
+            cleanText = cleanText.replace(/\n+/g, '. ').replace(/\s+/g, ' ').trim();
+            
+            if (!cleanText) {
+                showStatus('No text to read', 'error');
+                return;
+            }
+            
+            // Create speech utterance
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'en-US';
+            utterance.rate = speed; // Use provided speed
+            utterance.pitch = 1.0; // Normal pitch
+            utterance.volume = 1.0; // Full volume
+            
+            // Handle speech events
+            utterance.onstart = function() {
+                currentSpeech = utterance;
+                currentSpeakingMessageId = messageId;
+                updateListenButton(button, true);
+            };
+            
+            utterance.onend = function() {
+                currentSpeech = null;
+                currentSpeakingMessageId = null;
+                updateListenButton(button, false);
+            };
+            
+            utterance.onerror = function(event) {
+                console.error('Speech synthesis error:', event);
+                showStatus('Error reading text: ' + (event.error || 'Unknown error'), 'error');
+                currentSpeech = null;
+                currentSpeakingMessageId = null;
+                updateListenButton(button, false);
+            };
+            
+            // Start speaking
+            window.speechSynthesis.speak(utterance);
+        }
+        
+        // Update listen button state
+        function updateListenButton(button, isPlaying) {
+            if (isPlaying) {
+                button.classList.add('playing');
+                button.textContent = '⏹ Stop';
+            } else {
+                button.classList.remove('playing');
+                button.textContent = '🔊 Listen';
+            }
+        }
+        
+        // Get saved speech speed preference
+        function getSpeechSpeed() {
+            const saved = localStorage.getItem('blogDraftSpeechSpeed');
+            return saved ? parseFloat(saved) : 1.0;
+        }
+        
+        // Set speech speed preference
+        function setSpeechSpeed(speed) {
+            localStorage.setItem('blogDraftSpeechSpeed', speed.toString());
+        }
+        
+        // Update speed button active states for a specific container
+        function updateSpeedButtons(container, activeSpeed) {
+            const buttons = container.querySelectorAll('.speed-btn');
+            buttons.forEach(function(btn) {
+                const btnSpeed = parseFloat(btn.getAttribute('data-speed'));
+                if (btnSpeed === activeSpeed) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+        
+        // Update ALL speed buttons across all messages to reflect the global preference
+        function updateAllSpeedButtons(activeSpeed) {
+            const allSpeedControls = document.querySelectorAll('.speech-speed-controls');
+            allSpeedControls.forEach(function(container) {
+                updateSpeedButtons(container, activeSpeed);
+            });
         }
     </script>
 </body>
