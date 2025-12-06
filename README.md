@@ -332,6 +332,8 @@ The blog editor (`google-apps-script/Index.html`) includes:
 
 6. **Category Pages**: All category pages are auto-generated - don't edit them manually.
 
+7. **Google Analytics**: All pages must include Google Analytics tracking. Run `add_google_analytics.py` after creating new posts to ensure tracking is added. The script automatically skips pages that already have it.
+
 ## 🔄 Typical Workflow Summary
 
 1. **Create Post** → Use Google Apps Script editor
@@ -477,6 +479,9 @@ python3 add_google_analytics.py
 # Update site structure
 python3 restructure_index.py
 python3 generate_category_pages.py
+
+# Add Google Analytics to new posts
+python3 add_google_analytics.py
 
 # Update SEO
 python3 generate_sitemap.py
