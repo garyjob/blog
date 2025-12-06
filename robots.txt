@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://garyteh.com/sitemap.xml
+
+# Disallow admin directories
+Disallow: /admin/
+Disallow: /google-apps-script/
+
