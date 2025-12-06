@@ -243,6 +243,7 @@
             gap: 4px;
             margin-top: 8px;
             align-items: center;
+            flex-wrap: wrap;
         }
         
         .speed-btn {
@@ -336,15 +337,30 @@
             }
             
             .speech-speed-controls {
-                gap: 6px;
-                margin-top: 10px;
+                gap: 8px;
+                margin-top: 12px;
+                width: 100%;
+                justify-content: flex-start;
             }
             
             .speed-btn {
-                padding: 6px 12px;
-                font-size: 0.9rem;
-                min-height: 36px;
-                min-width: 44px;
+                padding: 8px 14px;
+                font-size: 1rem;
+                min-height: 44px;
+                min-width: 60px;
+                flex: 0 0 auto;
+            }
+            
+            .listen-btn {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+            
+            .message-actions {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
             }
             
             .edit-btn {
@@ -361,25 +377,37 @@
                 gap: 10px;
             }
             
+            .input-wrapper {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+            
             .input-wrapper textarea {
                 font-size: 16px; /* Prevents zoom on iOS */
                 min-height: 120px;
-                padding: 14px 120px 14px 14px;
+                padding: 14px 14px 14px 14px; /* Reduced padding since icons are above */
                 line-height: 1.5;
+                order: 2; /* Textarea comes after icons */
             }
             
+            /* Reposition icons above textarea on mobile using flexbox order */
             .voice-btn, .image-btn {
+                position: static;
                 width: 48px;
                 height: 48px;
                 font-size: 1.4rem;
-            }
-            
-            .voice-btn {
-                right: 12px;
+                margin: 0;
+                margin-bottom: 8px;
+                margin-right: 8px;
             }
             
             .image-btn {
-                right: 66px;
+                order: 0; /* Image button first */
+            }
+            
+            .voice-btn {
+                order: 1; /* Voice button second */
             }
             
             .message-image {
@@ -389,10 +417,14 @@
             
             .input-group {
                 width: 100%;
+                flex-direction: column;
+                align-items: stretch;
             }
             
-            .input-wrapper {
+            /* Move Send button beneath textarea on mobile */
+            #sendBtn {
                 width: 100%;
+                margin-top: 10px;
             }
             
             .action-buttons {
@@ -601,6 +633,12 @@
             color: var(--text-primary);
             line-height: 1.6;
             box-sizing: border-box;
+            overflow-y: auto;
+        }
+        
+        /* Auto-scroll textarea to show cursor when typing */
+        .input-wrapper textarea:focus {
+            scroll-behavior: smooth;
         }
         
         .input-wrapper textarea:focus {
@@ -845,7 +883,7 @@
                 <button class="btn-icon" id="darkModeBtn" title="Toggle dark mode">
                     🌙
                 </button>
-                <button class="btn btn-secondary" id="clearChatBtn">Clear</button>
+                <button class="btn btn-secondary" id="clearChatBtn">Start new Draft</button>
             </div>
         </div>
         
@@ -915,7 +953,7 @@
                     class="btn btn-primary" 
                     id="saveDraftBtn"
                 >
-                    <span id="saveDraftBtnText">Save as Draft</span>
+                    <span id="saveDraftBtnText">Save Draft</span>
                 </button>
             </div>
         </div>
@@ -997,6 +1035,17 @@
             const messageInput = document.getElementById('messageInput');
             if (messageInput) {
                 messageInput.addEventListener('keydown', handleKeyDown);
+                // Auto-scroll to cursor when typing for better visibility
+                messageInput.addEventListener('input', function() {
+                    // Scroll to cursor position
+                    this.scrollTop = this.scrollHeight;
+                });
+                // Also scroll on focus to ensure cursor is visible
+                messageInput.addEventListener('focus', function() {
+                    setTimeout(() => {
+                        this.scrollTop = this.scrollHeight;
+                    }, 100);
+                });
             }
             
             // Dark mode button
@@ -1154,13 +1203,15 @@
             }
         }
         
-        // Handle Enter key
+        // Handle Enter key - allow Enter to create new lines, use Shift+Enter or Cmd/Ctrl+Enter to send
         function handleKeyDown(event) {
             if (!event) return;
-            if (event.key === 'Enter' && !event.shiftKey) {
+            // Only send on Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux)
+            if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
                 event.preventDefault();
                 sendMessage();
             }
+            // Regular Enter just creates a new line (default behavior)
         }
         
         // Handle image upload
@@ -1521,6 +1572,10 @@
             conversationHistory.forEach((msg, index) => {
                 addMessage(msg.role, msg.content, index);
             });
+            
+            // Ensure all speed controls reflect the saved preference
+            const savedSpeed = getSpeechSpeed();
+            updateAllSpeedButtons(savedSpeed);
         }
         
         // Edit a message
@@ -1659,7 +1714,7 @@
                         // Clear editing state if it was an update
                         if (result.isUpdate) {
                             editingPostFilename = null;
-                            document.getElementById('saveDraftBtnText').textContent = 'Save as Draft';
+                            document.getElementById('saveDraftBtnText').textContent = 'Save Draft';
                             document.getElementById('saveDraftBtn').classList.remove('editing-indicator');
                             const indicator = document.getElementById('saveDraftBtn').querySelector('.editing-indicator');
                             if (indicator) indicator.remove();
@@ -1686,13 +1741,13 @@
                     } else {
                         showStatus('❌ Error: ' + result.error, 'error');
                         saveDraftBtn.disabled = false;
-                        saveDraftBtn.innerHTML = '<span id="saveDraftBtnText">' + (editingPostFilename ? 'Update Draft' : 'Save as Draft') + '</span>';
+                        saveDraftBtn.innerHTML = '<span id="saveDraftBtnText">' + (editingPostFilename ? 'Update Draft' : 'Save Draft') + '</span>';
                     }
                 })
                 .withFailureHandler(function(error) {
                     showStatus('❌ Error: ' + error.message, 'error');
                     saveDraftBtn.disabled = false;
-                    saveDraftBtn.innerHTML = '<span id="saveDraftBtnText">' + (editingPostFilename ? 'Update Draft' : 'Save as Draft') + '</span>';
+                    saveDraftBtn.innerHTML = '<span id="saveDraftBtnText">' + (editingPostFilename ? 'Update Draft' : 'Save Draft') + '</span>';
                 })
                 .saveDraft(title, content, categories, editingPostFilename);
         }
@@ -1868,7 +1923,7 @@
             if (confirm('Clear conversation?')) {
                 conversationHistory = [];
                 editingPostFilename = null;
-                document.getElementById('saveDraftBtnText').textContent = 'Save as Draft';
+                document.getElementById('saveDraftBtnText').textContent = 'Save Draft';
                 document.getElementById('saveDraftBtn').classList.remove('editing-indicator');
                 const indicator = document.getElementById('saveDraftBtn').querySelector('.editing-indicator');
                 if (indicator) indicator.remove();

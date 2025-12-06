@@ -5,13 +5,13 @@ formattedDate: "December 2, 2025"
 categories: ["Technology", "AI", "Startups", "Productivity"]
 ---
 
-I've been thinking about this for a while—how do you make the act of writing less friction, more natural? Today, I finally built something that feels right: a blog editor powered by Grok AI, accessible from anywhere, that lets me draft posts through conversation.
+I've been thinking about this for a while—how do you make the act of writing less friction, more natural' Today, I finally built something that feels right: a blog editor powered by Grok AI, accessible from anywhere, that lets me draft posts through conversation.
 
 **The Setup**
 
 The system lives in a Google Apps Script web app, accessible at `garyteh.com/admin`. It's a simple interface—chat box, voice input, and a camera button for images. But behind that simplicity is a workflow that's changed how I think about writing.
 
-Here's how it works: I start with a prompt like "What's today's post?" Grok responds, and we go back and forth. I can speak my thoughts (voice-to-text), type them, or even attach images. The conversation builds the post organically. When it feels done, I save it as a draft. Later, when I'm ready, I convert that draft into a published blog post.
+Here's how it works: I start with a prompt like "What's today's post'" Grok responds, and we go back and forth. I can speak my thoughts (voice-to-text), type them, or even attach images. The conversation builds the post organically. When it feels done, I save it as a draft. Later, when I'm ready, I convert that draft into a published blog post.
 
 **The Technical Stack**
 
@@ -48,7 +48,7 @@ The architecture is straightforward:
 
 **What Makes It Different**
 
-Most blog editors feel like word processors. This feels like talking to an editor who gets your voice. Grok is trained on my writing style—conversational, reflective, sometimes philosophical. It suggests categories, helps structure thoughts, and knows when to ask questions versus when to say "Looks done—want to publish?"
+Most blog editors feel like word processors. This feels like talking to an editor who gets your voice. Grok is trained on my writing style—conversational, reflective, sometimes philosophical. It suggests categories, helps structure thoughts, and knows when to ask questions versus when to say "Looks done—want to publish'"
 
 The draft system means I can start posts, save them, and come back later. Images persist. The conversation history is stored client-side, so I can edit my inputs and reshape the conversation.
 
@@ -84,6 +84,6 @@ The code is open source: [https://github.com/garyjob/blog/](https://github.com/g
 
 The `google-apps-script/` folder contains everything you need. Set up your Grok API key, GitHub token, and deploy. The system will handle the rest.
 
-What about you—how do you handle the friction between having an idea and getting it published? What tools make writing feel natural for you?
+What about you—how do you handle the friction between having an idea and getting it published' What tools make writing feel natural for you'
 
 

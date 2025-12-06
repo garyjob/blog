@@ -225,6 +225,9 @@ function callGrok(prompt, history) {
              '- **Authentic Voice**: Avoid marketing-speak, corporate jargon, or overly enthusiastic tone. Be genuine, sometimes understated, occasionally wry.\n' +
              '- **Structure When Needed**: Use bullet points for lists, but keep paragraphs flowing. Don\'t force rigid frameworks.\n' +
              '- **End with Questions or Reflections**: Close with a question to the reader, a personal reflection, or a forward-looking thought.\n' +
+             '\n\nIMPORTANT RESTRICTIONS:\n' +
+             '- **NEVER start responses with "Hey there it is Gary" or similar greetings. Start naturally with the content itself.**\n' +
+             '- **When mentioning beverages, use "cup of cacao" instead of "coffee". Gary prefers cacao, not coffee.**\n' +
              '\n\nPROCESS:\n' +
              '- The user gives raw ideas—help turn them into structured blog content with catchy title, intro, sections, wrap-up.\n' +
              '- Ask questions to dig deeper and understand their perspective.\n' +
@@ -800,7 +803,8 @@ function fetchGitHubFile(path) {
     
     if (response.getResponseCode() === 200) {
       const data = JSON.parse(response.getContentText());
-      return Utilities.newBlob(Utilities.base64Decode(data.content)).getDataAsString();
+      // Explicitly use UTF-8 encoding to prevent character corruption (e.g., ' becoming ?)
+      return Utilities.newBlob(Utilities.base64Decode(data.content)).getDataAsString('UTF-8');
     } else if (response.getResponseCode() === 404) {
       Logger.log('File not found: ' + path);
       return null;
@@ -1408,7 +1412,11 @@ function commitToGitHub(files, message) {
     const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(file.path)}`;
     
     // Base64 encode the content (Contents API requires this)
-    const encodedContent = Utilities.base64Encode(file.content);
+    // Ensure proper UTF-8 encoding by converting string to UTF-8 bytes first
+    // Create a blob with explicit UTF-8 encoding, then get bytes
+    const blob = Utilities.newBlob(file.content, 'text/plain', 'UTF-8');
+    const contentBytes = blob.getBytes();
+    const encodedContent = Utilities.base64Encode(contentBytes);
     
     const payload = {
       message: message,
@@ -2209,8 +2217,14 @@ function saveDraft(title, content, categories, existingFilename) {
     // Save to drafts folder
     const draftPath = `drafts/${filename}`;
     
-    // Get SHA if updating existing draft
+    // Get SHA - check if file already exists (for both updates and new drafts)
     const draftSHA = getGitHubFileSHA(draftPath);
+    
+    // If file exists (has SHA), treat as update
+    if (draftSHA && !isUpdate) {
+      isUpdate = true;
+      Logger.log('Draft with same filename already exists, will override: ' + draftPath);
+    }
     
     // Prepare file for commit
     const files = [
@@ -2221,7 +2235,7 @@ function saveDraft(title, content, categories, existingFilename) {
       }
     ];
     
-    Logger.log('Saving draft to: ' + draftPath);
+    Logger.log('Saving draft to: ' + draftPath + (draftSHA ? ' (updating existing)' : ' (new file)'));
     
     // Commit to GitHub
     const commitMessage = isUpdate 
