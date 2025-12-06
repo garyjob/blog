@@ -75,6 +75,34 @@
             align-items: center;
         }
         
+        .speech-speed-selector {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .speech-speed-selector label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .speech-speed-selector select {
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        
+        .speech-speed-selector select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
         .btn {
             padding: 8px 16px;
             border: none;
@@ -238,40 +266,12 @@
             animation: pulse 1.5s infinite;
         }
         
-        .speech-speed-controls {
-            display: flex;
-            gap: 4px;
-            margin-top: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .speed-btn {
-            background: rgba(52, 152, 219, 0.15);
-            border: 1px solid rgba(52, 152, 219, 0.3);
-            color: var(--text-primary);
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            min-width: 36px;
-        }
-        
-        .speed-btn:hover {
-            background: rgba(52, 152, 219, 0.25);
-        }
-        
-        .speed-btn.active {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
+        /* Speed controls removed from messages - now in header */
         
         @media (max-width: 600px) {
             body {
                 padding: 5px;
-                font-size: 20px; /* Much larger base font for comfortable reading */
+                font-size: 16px; /* Reduced from 20px to prevent squishing */
             }
             
             .container {
@@ -280,49 +280,66 @@
             }
             
             .header {
-                padding: 15px;
+                padding: 12px;
                 flex-wrap: wrap;
-                gap: 10px;
+                gap: 8px;
             }
             
             .header h1 {
-                font-size: 1.3rem;
+                font-size: 1.2rem;
                 flex: 1 1 100%;
             }
             
             .header-controls {
                 width: 100%;
                 justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            
+            .speech-speed-selector {
+                order: -1; /* Move to top on mobile */
+                width: 100%;
+                justify-content: space-between;
+                margin-bottom: 6px;
+                font-size: 0.85rem;
+            }
+            
+            .speech-speed-selector select {
+                flex: 1;
+                max-width: 100px;
+                padding: 4px 6px;
+                font-size: 0.85rem;
             }
             
             .btn {
-                padding: 12px 18px;
-                font-size: 1rem;
-                min-height: 44px; /* Touch-friendly size */
+                padding: 8px 14px;
+                font-size: 0.9rem;
+                min-height: 36px; /* Reduced from 44px */
             }
             
             .btn-icon {
-                padding: 12px;
-                font-size: 1.4rem;
-                min-width: 44px;
-                min-height: 44px;
+                padding: 8px;
+                font-size: 1.2rem;
+                min-width: 36px;
+                min-height: 36px;
             }
             
             .chat-container {
-                padding: 15px;
-                gap: 12px;
+                padding: 12px;
+                gap: 10px;
             }
             
             .message-avatar {
-                width: 42px;
-                height: 42px;
-                font-size: 1.1rem;
+                width: 32px;
+                height: 32px;
+                font-size: 0.9rem;
             }
             
             .message-content {
-                padding: 16px 20px;
-                font-size: 1.3rem; /* ~26px - much larger for comfortable reading without squinting */
-                line-height: 1.8; /* Increased line spacing for better readability */
+                padding: 12px 16px;
+                font-size: 0.95rem; /* Reduced from 1.3rem */
+                line-height: 1.6;
                 max-width: 90%;
             }
             
@@ -331,9 +348,9 @@
             }
             
             .listen-btn {
-                padding: 8px 12px;
-                font-size: 1rem;
-                min-height: 40px;
+                padding: 6px 10px;
+                font-size: 0.85rem;
+                min-height: 32px;
             }
             
             .speech-speed-controls {
@@ -370,67 +387,55 @@
             }
             
             .input-area {
-                padding: 15px;
-            }
-            
-            .input-wrapper {
-                gap: 10px;
-            }
-            
-            .input-wrapper {
-                width: 100%;
-                display: flex;
-                flex-direction: column;
-            }
-            
-            .input-wrapper textarea {
-                font-size: 16px; /* Prevents zoom on iOS */
-                min-height: 120px;
-                padding: 14px 14px 14px 14px; /* Reduced padding since icons are above */
-                line-height: 1.5;
-                order: 2; /* Textarea comes after icons */
-            }
-            
-            /* Reposition icons above textarea on mobile using flexbox order */
-            .voice-btn, .image-btn {
-                position: static;
-                width: 48px;
-                height: 48px;
-                font-size: 1.4rem;
-                margin: 0;
-                margin-bottom: 8px;
-                margin-right: 8px;
-            }
-            
-            .image-btn {
-                order: 0; /* Image button first */
-            }
-            
-            .voice-btn {
-                order: 1; /* Voice button second */
-            }
-            
-            .message-image {
-                max-width: 100%;
-                max-height: 300px;
+                padding: 12px;
             }
             
             .input-group {
                 width: 100%;
-                flex-direction: column;
-                align-items: stretch;
+                gap: 6px;
             }
             
-            /* Move Send button beneath textarea on mobile */
+            .input-toolbar {
+                gap: 6px;
+            }
+            
+            .input-wrapper textarea {
+                font-size: 16px; /* Prevents zoom on iOS */
+                min-height: 100px; /* Reduced from 120px */
+                max-height: 150px;
+                padding: 12px 45px 12px 12px; /* Reduced padding, minimal for send button */
+                line-height: 1.5;
+            }
+            
+            .send-btn-inline {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+                bottom: 10px;
+                right: 10px;
+            }
+            
+            .voice-btn, .image-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 1.1rem;
+            }
+            
+            .message-image {
+                max-width: 100%;
+                max-height: 250px;
+            }
+            
+            /* Hide external send button on mobile (we use inline) */
             #sendBtn {
-                width: 100%;
-                margin-top: 10px;
+                display: none;
             }
             
             .action-buttons {
                 flex-direction: column;
-                gap: 10px;
+                gap: 8px;
                 width: 100%;
+                margin-top: 8px;
             }
             
             .action-buttons .btn {
@@ -438,9 +443,9 @@
             }
             
             .status-message {
-                font-size: 0.95rem;
-                padding: 12px;
-                margin-bottom: 10px;
+                font-size: 0.85rem;
+                padding: 10px 12px;
+                margin-bottom: 8px;
             }
             
             .load-post-input-group select option {
@@ -608,20 +613,26 @@
         
         .input-group {
             display: flex;
-            gap: 10px;
-            align-items: flex-end;
+            flex-direction: column;
+            gap: 8px;
             width: 100%;
+        }
+        
+        .input-toolbar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
         
         .input-wrapper {
             flex: 1;
             position: relative;
-            min-width: 0; /* Allow flexbox to shrink */
+            min-width: 0;
         }
         
         .input-wrapper textarea {
             width: 100%;
-            padding: 16px 110px 16px 16px;
+            padding: 16px 50px 16px 16px; /* Minimal right padding for send button only */
             border: 2px solid var(--border);
             border-radius: 8px;
             font-size: 1.05rem;
@@ -636,21 +647,12 @@
             overflow-y: auto;
         }
         
-        /* Auto-scroll textarea to show cursor when typing */
-        .input-wrapper textarea:focus {
-            scroll-behavior: smooth;
-        }
-        
-        .input-wrapper textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-        
-        .voice-btn, .image-btn {
+        .send-btn-inline {
             position: absolute;
             bottom: 12px;
-            width: 38px;
-            height: 38px;
+            right: 12px; /* Bottom right corner */
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             border: none;
             background: var(--accent);
@@ -662,26 +664,57 @@
             font-size: 1.2rem;
             transition: all 0.2s;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            flex-shrink: 0;
             z-index: 10;
+            padding: 0;
         }
         
-        .voice-btn {
-            right: 12px;
-        }
-        
-        .image-btn {
-            right: 56px;
-            background: var(--success);
-        }
-        
-        .voice-btn:hover:not(:disabled), .image-btn:hover:not(:disabled) {
+        .send-btn-inline:hover:not(:disabled) {
             background: var(--accent-hover);
             transform: scale(1.1);
         }
         
-        .image-btn:hover:not(:disabled) {
-            background: #27ae60;
+        .send-btn-inline:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .send-btn-inline .loading {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+        }
+        
+        .input-wrapper textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            scroll-behavior: smooth;
+        }
+        
+        .voice-btn, .image-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        
+        .voice-btn:hover:not(:disabled), .image-btn:hover:not(:disabled) {
+            background: var(--border);
+            transform: scale(1.05);
+        }
+        
+        .image-btn {
+            background: var(--bg-secondary);
         }
         
         .voice-btn:disabled, .image-btn:disabled {
@@ -691,11 +724,15 @@
         
         .voice-btn.recording {
             background: var(--error);
+            color: white;
+            border-color: var(--error);
             animation: pulse 1.5s infinite;
         }
         
         .image-btn.uploading {
             background: var(--accent);
+            color: white;
+            border-color: var(--accent);
             animation: pulse 1.5s infinite;
         }
         
@@ -880,6 +917,14 @@
         <div class="header">
             <h1>📝 AI Blog Drafter</h1>
             <div class="header-controls">
+                <div class="speech-speed-selector">
+                    <label for="globalSpeechSpeed">Speed:</label>
+                    <select id="globalSpeechSpeed">
+                        <option value="1">1×</option>
+                        <option value="1.5">1.5×</option>
+                        <option value="2">2×</option>
+                    </select>
+                </div>
                 <button class="btn-icon" id="darkModeBtn" title="Toggle dark mode">
                     🌙
                 </button>
@@ -912,17 +957,7 @@
                 </div>
             </div>
             <div class="input-group">
-                <div class="input-wrapper">
-                    <textarea 
-                        id="messageInput" 
-                        placeholder="Type your message or use voice input..."
-                        rows="1"
-                    ></textarea>
-                    <input 
-                        type="file" 
-                        id="imageInput" 
-                        accept="image/*"
-                    >
+                <div class="input-toolbar">
                     <button 
                         class="image-btn" 
                         id="imageBtn" 
@@ -937,8 +972,28 @@
                     >
                         🎤
                     </button>
+                    <input 
+                        type="file" 
+                        id="imageInput" 
+                        accept="image/*"
+                        style="display: none;"
+                    >
                 </div>
-                <button class="btn btn-primary" id="sendBtn">
+                <div class="input-wrapper">
+                    <textarea 
+                        id="messageInput" 
+                        placeholder="Type your message or use voice input..."
+                        rows="1"
+                    ></textarea>
+                    <button 
+                        class="send-btn-inline" 
+                        id="sendBtnInline" 
+                        title="Send message"
+                    >
+                        ➤
+                    </button>
+                </div>
+                <button class="btn btn-primary" id="sendBtn" style="display: none;">
                     Send
                 </button>
             </div>
@@ -967,6 +1022,7 @@
         let editingPostFilename = null; // Track if we're editing an existing post
         let currentSpeech = null; // Track current speech synthesis
         let currentSpeakingMessageId = null; // Track which message is being read
+        let confirmedTranscript = ''; // Track confirmed text from voice recognition
         
         // Initialize
         window.onload = function() {
@@ -975,10 +1031,6 @@
             initializeDarkMode();
             attachEventListeners();
             testImageUploadFunction();
-            
-            // Sync all speed controls to reflect saved preference
-            const savedSpeed = getSpeechSpeed();
-            updateAllSpeedButtons(savedSpeed);
             
             // Enable save draft button if we have conversation history
             if (conversationHistory.length >= 2) {
@@ -1005,10 +1057,42 @@
         
         // Attach event listeners programmatically (better for Google Apps Script)
         function attachEventListeners() {
-            // Send button
+            // Send button (inline inside textarea)
+            const sendBtnInline = document.getElementById('sendBtnInline');
+            if (sendBtnInline) {
+                sendBtnInline.addEventListener('click', sendMessage);
+            }
+            
+            // Legacy send button (hidden, kept for compatibility)
             const sendBtn = document.getElementById('sendBtn');
             if (sendBtn) {
                 sendBtn.addEventListener('click', sendMessage);
+            }
+            
+            // Global speech speed selector
+            const globalSpeechSpeed = document.getElementById('globalSpeechSpeed');
+            if (globalSpeechSpeed) {
+                // Initialize with saved preference
+                const savedSpeed = getSpeechSpeed();
+                globalSpeechSpeed.value = savedSpeed.toString();
+                
+                // Update when changed
+                globalSpeechSpeed.addEventListener('change', function() {
+                    const speed = parseFloat(this.value);
+                    setSpeechSpeed(speed);
+                    // If currently playing, restart with new speed
+                    if (currentSpeech && currentSpeakingMessageId) {
+                        const messageElement = document.getElementById(currentSpeakingMessageId);
+                        if (messageElement) {
+                            const content = messageElement.querySelector('.message-content').textContent;
+                            const listenBtn = messageElement.querySelector('.listen-btn');
+                            if (listenBtn) {
+                                window.speechSynthesis.cancel();
+                                toggleSpeech(content, currentSpeakingMessageId, listenBtn, speed);
+                            }
+                        }
+                    }
+                });
             }
             
             // Image upload button
@@ -1145,32 +1229,82 @@
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 recognition = new SpeechRecognition();
-                recognition.continuous = false;
-                recognition.interimResults = false;
+                recognition.continuous = true; // Keep listening until manually stopped
+                recognition.interimResults = true; // Show interim results
                 recognition.lang = 'en-US';
                 
                 recognition.onstart = function() {
                     isRecording = true;
+                    // Get existing text when starting - this is our base
+                    const messageInput = document.getElementById('messageInput');
+                    confirmedTranscript = messageInput.value.trim();
                     updateVoiceButton();
                 };
                 
                 recognition.onresult = function(event) {
-                    const transcript = event.results[0][0].transcript;
-                    document.getElementById('messageInput').value = transcript;
-                    isRecording = false;
-                    updateVoiceButton();
+                    const messageInput = document.getElementById('messageInput');
+                    let interimTranscript = '';
+                    let newFinalTranscript = '';
+                    
+                    // Process only new results starting from resultIndex
+                    // This prevents processing the same results multiple times
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            // Add to confirmed transcript only if final
+                            newFinalTranscript += transcript + ' ';
+                        } else {
+                            // Interim results for real-time feedback
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    // Update confirmed transcript with new final results
+                    if (newFinalTranscript) {
+                        if (confirmedTranscript) {
+                            confirmedTranscript += ' ' + newFinalTranscript.trim();
+                        } else {
+                            confirmedTranscript = newFinalTranscript.trim();
+                        }
+                    }
+                    
+                    // Build the display text: confirmed + interim
+                    let displayText = confirmedTranscript;
+                    if (interimTranscript) {
+                        displayText = (displayText ? displayText + ' ' : '') + interimTranscript;
+                    }
+                    
+                    // Update textarea
+                    messageInput.value = displayText;
+                    
+                    // Focus and scroll to end
+                    messageInput.focus();
+                    messageInput.scrollTop = messageInput.scrollHeight;
                 };
                 
                 recognition.onerror = function(event) {
                     console.error('Speech recognition error:', event.error);
-                    showStatus('Voice recognition error: ' + event.error, 'error');
-                    isRecording = false;
-                    updateVoiceButton();
+                    // Only show error for non-timeout errors
+                    if (event.error !== 'no-speech' && event.error !== 'aborted') {
+                        showStatus('Voice recognition error: ' + event.error, 'error');
+                    }
+                    // Don't stop recording on error - let user manually stop
                 };
                 
                 recognition.onend = function() {
-                    isRecording = false;
-                    updateVoiceButton();
+                    // Only stop if user manually stopped it
+                    // If still in recording mode, restart (handles automatic timeouts)
+                    if (isRecording) {
+                        try {
+                            recognition.start();
+                        } catch (e) {
+                            // If restart fails, stop recording
+                            isRecording = false;
+                            updateVoiceButton();
+                        }
+                    } else {
+                        updateVoiceButton();
+                    }
                 };
             } else {
                 document.getElementById('voiceBtn').style.display = 'none';
@@ -1185,9 +1319,27 @@
             }
             
             if (isRecording) {
+                // Manually stop recording
+                isRecording = false;
                 recognition.stop();
+                // Finalize any pending interim results
+                const messageInput = document.getElementById('messageInput');
+                messageInput.value = confirmedTranscript; // Set to confirmed text only
+                confirmedTranscript = ''; // Reset for next session
+                updateVoiceButton();
             } else {
-                recognition.start();
+                // Start recording
+                try {
+                    recognition.start();
+                } catch (e) {
+                    // If already started, just update state
+                    if (e.name === 'InvalidStateError') {
+                        isRecording = true;
+                        updateVoiceButton();
+                    } else {
+                        showStatus('Could not start voice recognition', 'error');
+                    }
+                }
             }
         }
         
@@ -1368,12 +1520,25 @@
             
             // Show loading
             const loadingId = addMessage('assistant', 'Loading...');
-            const sendBtn = document.getElementById('sendBtn');
-            sendBtn.disabled = true;
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'loading';
-            sendBtn.innerHTML = '';
-            sendBtn.appendChild(loadingDiv);
+            const sendBtnInline = document.getElementById('sendBtnInline');
+            const sendBtn = document.getElementById('sendBtn'); // Legacy fallback
+            const btnToDisable = sendBtnInline || sendBtn;
+            
+            if (btnToDisable) {
+                btnToDisable.disabled = true;
+                if (sendBtnInline) {
+                    // Use inline button with loading indicator
+                    const loadingDiv = document.createElement('div');
+                    loadingDiv.className = 'loading';
+                    sendBtnInline.innerHTML = '';
+                    sendBtnInline.appendChild(loadingDiv);
+                } else if (sendBtn) {
+                    const loadingDiv = document.createElement('div');
+                    loadingDiv.className = 'loading';
+                    sendBtn.innerHTML = '';
+                    sendBtn.appendChild(loadingDiv);
+                }
+            }
             
             // Call server
             google.script.run
@@ -1390,8 +1555,14 @@
                     saveConversation();
                     
                     // Re-enable send button
-                    sendBtn.disabled = false;
-                    sendBtn.textContent = 'Send';
+                    if (sendBtnInline) {
+                        sendBtnInline.disabled = false;
+                        sendBtnInline.innerHTML = '➤';
+                    }
+                    if (sendBtn) {
+                        sendBtn.disabled = false;
+                        sendBtn.textContent = 'Send';
+                    }
                     
                     // Enable save draft button if we have at least one exchange
                     if (conversationHistory.length >= 2) {
@@ -1401,8 +1572,14 @@
                 .withFailureHandler(function(error) {
                     removeMessage(loadingId);
                     showStatus('Error: ' + error.message, 'error');
-                    sendBtn.disabled = false;
-                    sendBtn.textContent = 'Send';
+                    if (sendBtnInline) {
+                        sendBtnInline.disabled = false;
+                        sendBtnInline.innerHTML = '➤';
+                    }
+                    if (sendBtn) {
+                        sendBtn.disabled = false;
+                        sendBtn.textContent = 'Send';
+                    }
                 })
                 .callGrok(message, conversationHistory.slice(0, -1)); // Send history without current message
         }
@@ -1461,7 +1638,7 @@
                 messageDiv.appendChild(actionsDiv);
             }
             
-            // Add listen button for assistant messages
+            // Add listen button for assistant messages (speed controls moved to header)
             if (role === 'assistant') {
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'message-actions';
@@ -1476,35 +1653,6 @@
                 };
                 actionsDiv.appendChild(listenBtn);
                 
-                // Add speed controls
-                const speedControls = document.createElement('div');
-                speedControls.className = 'speech-speed-controls';
-                speedControls.setAttribute('data-message-id', messageId);
-                
-                const speeds = [1, 1.5, 2];
-                speeds.forEach(function(speed) {
-                    const speedBtn = document.createElement('button');
-                    speedBtn.className = 'speed-btn';
-                    speedBtn.textContent = speed + 'X';
-                    speedBtn.setAttribute('data-speed', speed);
-                    speedBtn.onclick = function() {
-                        setSpeechSpeed(speed);
-                        // Update ALL speed controls across all messages to show the new preference
-                        updateAllSpeedButtons(speed);
-                        // If currently playing this message, restart with new speed
-                        if (currentSpeakingMessageId === messageId && currentSpeech) {
-                            window.speechSynthesis.cancel();
-                            toggleSpeech(content, messageId, listenBtn, speed);
-                        }
-                    };
-                    speedControls.appendChild(speedBtn);
-                });
-                
-                // Set initial active button based on saved preference
-                const savedSpeed = getSpeechSpeed();
-                updateSpeedButtons(speedControls, savedSpeed);
-                
-                actionsDiv.appendChild(speedControls);
                 messageDiv.appendChild(actionsDiv);
             }
             
@@ -1573,9 +1721,12 @@
                 addMessage(msg.role, msg.content, index);
             });
             
-            // Ensure all speed controls reflect the saved preference
-            const savedSpeed = getSpeechSpeed();
-            updateAllSpeedButtons(savedSpeed);
+            // Ensure global speed selector reflects saved preference
+            const globalSpeechSpeed = document.getElementById('globalSpeechSpeed');
+            if (globalSpeechSpeed) {
+                const savedSpeed = getSpeechSpeed();
+                globalSpeechSpeed.value = savedSpeed.toString();
+            }
         }
         
         // Edit a message
@@ -2076,27 +2227,11 @@
         // Set speech speed preference
         function setSpeechSpeed(speed) {
             localStorage.setItem('blogDraftSpeechSpeed', speed.toString());
-        }
-        
-        // Update speed button active states for a specific container
-        function updateSpeedButtons(container, activeSpeed) {
-            const buttons = container.querySelectorAll('.speed-btn');
-            buttons.forEach(function(btn) {
-                const btnSpeed = parseFloat(btn.getAttribute('data-speed'));
-                if (btnSpeed === activeSpeed) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-        }
-        
-        // Update ALL speed buttons across all messages to reflect the global preference
-        function updateAllSpeedButtons(activeSpeed) {
-            const allSpeedControls = document.querySelectorAll('.speech-speed-controls');
-            allSpeedControls.forEach(function(container) {
-                updateSpeedButtons(container, activeSpeed);
-            });
+            // Update global selector to reflect change
+            const globalSpeechSpeed = document.getElementById('globalSpeechSpeed');
+            if (globalSpeechSpeed) {
+                globalSpeechSpeed.value = speed.toString();
+            }
         }
     </script>
 </body>
