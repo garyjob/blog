@@ -74,6 +74,9 @@ python3 restructure_index.py
 
 # 2. Regenerate all category pages (to include new post)
 python3 generate_category_pages.py
+
+# 3. Add Google Analytics to new post (if not already present)
+python3 add_google_analytics.py
 ```
 
 **Important**: These scripts must be run after:
@@ -81,6 +84,7 @@ python3 generate_category_pages.py
 - Adding new categories to a post
 - Fixing category links in posts
 - Any changes that affect post metadata
+- Creating any new HTML files (the Google Analytics script will add tracking to new posts automatically)
 
 ## 📝 Scripts Documentation
 
@@ -334,8 +338,9 @@ The blog editor (`google-apps-script/Index.html`) includes:
 2. **Review Post** → Check HTML file for any issues
 3. **Fix Issues** → Clean up any draft metadata or formatting
 4. **Update Site** → Run `restructure_index.py` and `generate_category_pages.py`
-5. **Update SEO** → Run `generate_sitemap.py` (and `add_seo_meta_tags.py` if needed)
-6. **Verify** → Check index.html, archive pages, and category pages
+5. **Add Analytics** → Run `add_google_analytics.py` to ensure tracking is on all pages (including new post)
+6. **Update SEO** → Run `generate_sitemap.py` (and `add_seo_meta_tags.py` if needed)
+7. **Verify** → Check index.html, archive pages, and category pages
 
 ## 🔍 SEO Optimization
 
