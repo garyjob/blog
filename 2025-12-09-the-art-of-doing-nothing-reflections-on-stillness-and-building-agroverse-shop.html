@@ -197,6 +197,66 @@ I was sipping my cup of cacao this morning, staring at the steam curling...",
             border-radius: 5px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        .listen-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .listen-btn:hover:not(:disabled) {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+        .listen-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .listen-btn.playing {
+            background: #e74c3c;
+        }
+        .listen-btn.playing:hover {
+            background: #c0392b;
+        }
+        .speech-speed-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .speech-speed-controls label {
+            font-weight: 500;
+        }
+        .speech-speed-controls select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .speech-speed-controls select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
         footer {
             margin-top: 50px;
             padding-top: 20px;
@@ -229,7 +289,26 @@ I was sipping my cup of cacao this morning, staring at the steam curling...",
             </div>
         </div>
 
-        <div class="content">
+        <div class="audio-controls">
+            <button id="listenBtn" class="listen-btn">
+                <span id="listenIcon">🔊</span>
+                <span id="listenText">Listen</span>
+            </button>
+            <div class="speech-speed-controls">
+                <label for="speedSelect">Speed:</label>
+                <select id="speedSelect">
+                    <option value="0.5">0.5x</option>
+                    <option value="0.75">0.75x</option>
+                    <option value="1" selected>1x</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="1.75">1.75x</option>
+                    <option value="2">2x</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="content" id="postContent">
 <p><strong>Title: The Art of Doing Nothing – Reflections on Stillness and Building <a href="https://agroverse.shop" target="_blank" rel="noopener noreferrer">Agroverse</a>.shop</strong></p>
 
 <p>I was sipping my cup of cacao this morning, staring at the steam curling up in the quiet, when I decided to pull an oracle reading. The cards—or rather, the hexagrams—landed on 52, <em>Keeping Still</em>, and 20, <em>Contemplation</em>. The words hit me like a pause button: "Keeping his back still" and "The ablution has been made, but not yet the offering." There’s something grounding in that, isn’t there? A reminder to stop, to watch, to let things unfold without forcing the issue. If you’re curious, you can see the full reading or cast your own here: <a href="https://oracle.truesight.me/?reading=8-8-9-8-6-7">https://oracle.truesight.me/?reading=8-8-9-8-6-7</a>.</p>
@@ -281,5 +360,104 @@ I was sipping my cup of cacao this morning, staring at the steam curling...",
         </footer>
     </div>
     <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/f4002ef7c62ee64494321ba14/9c56fa20706b0138cf6fea672.js");</script>
+    <script>
+        (function() {
+            if (!('speechSynthesis' in window)) {
+                document.getElementById('listenBtn').disabled = true;
+                document.getElementById('listenBtn').title = 'Text-to-speech not supported in this browser';
+                return;
+            }
+            
+            let currentUtterance = null;
+            let isPlaying = false;
+            const listenBtn = document.getElementById('listenBtn');
+            const listenIcon = document.getElementById('listenIcon');
+            const listenText = document.getElementById('listenText');
+            const speedSelect = document.getElementById('speedSelect');
+            const postContent = document.getElementById('postContent');
+            
+            // Load saved speed preference
+            const savedSpeed = localStorage.getItem('blogSpeechSpeed') || '1';
+            speedSelect.value = savedSpeed;
+            
+            // Save speed preference when changed
+            speedSelect.addEventListener('change', function() {
+                localStorage.setItem('blogSpeechSpeed', speedSelect.value);
+                if (currentUtterance) {
+                    currentUtterance.rate = parseFloat(speedSelect.value);
+                }
+            });
+            
+            function getTextContent() {
+                // Get all text from post content, excluding code blocks and script tags
+                const content = postContent.cloneNode(true);
+                // Remove script and style tags
+                content.querySelectorAll('script, style, pre, code').forEach(el => el.remove());
+                // Get text content
+                return content.textContent || content.innerText || '';
+            }
+            
+            function toggleSpeech() {
+                if (isPlaying && currentUtterance) {
+                    // Stop speaking
+                    window.speechSynthesis.cancel();
+                    currentUtterance = null;
+                    isPlaying = false;
+                    listenBtn.classList.remove('playing');
+                    listenIcon.textContent = '🔊';
+                    listenText.textContent = 'Listen';
+                } else {
+                    // Start speaking
+                    const text = getTextContent();
+                    if (!text.trim()) {
+                        alert('No content to read');
+                        return;
+                    }
+                    
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = parseFloat(speedSelect.value);
+                    utterance.pitch = 1;
+                    utterance.volume = 1;
+                    
+                    utterance.onstart = function() {
+                        isPlaying = true;
+                        listenBtn.classList.add('playing');
+                        listenIcon.textContent = '⏸️';
+                        listenText.textContent = 'Pause';
+                    };
+                    
+                    utterance.onend = function() {
+                        isPlaying = false;
+                        currentUtterance = null;
+                        listenBtn.classList.remove('playing');
+                        listenIcon.textContent = '🔊';
+                        listenText.textContent = 'Listen';
+                    };
+                    
+                    utterance.onerror = function(event) {
+                        console.error('Speech synthesis error:', event);
+                        isPlaying = false;
+                        currentUtterance = null;
+                        listenBtn.classList.remove('playing');
+                        listenIcon.textContent = '🔊';
+                        listenText.textContent = 'Listen';
+                        alert('Error reading text. Please try again.');
+                    };
+                    
+                    currentUtterance = utterance;
+                    window.speechSynthesis.speak(utterance);
+                }
+            }
+            
+            listenBtn.addEventListener('click', toggleSpeech);
+            
+            // Stop speech when page is unloaded
+            window.addEventListener('beforeunload', function() {
+                if (isPlaying) {
+                    window.speechSynthesis.cancel();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
