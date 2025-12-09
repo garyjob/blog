@@ -182,6 +182,26 @@ python3 convert_drafts.py
 python3 fix_and_publish.py
 ```
 
+### `add_auto_links_to_existing_posts.py`
+
+**Purpose**: Adds automatic links to "TrueSight DAO" and "Agroverse" in existing blog posts
+
+**What it does**:
+- Scans all blog post HTML files
+- Adds links to "TrueSight DAO" → [TrueSight.me](https://truesight.me)
+- Adds links to "Agroverse" → [Agroverse.shop](https://agroverse.shop)
+- Intelligently avoids linking text that's already inside HTML links or tags
+- Only updates files that need changes
+
+**Usage**:
+```bash
+python3 add_auto_links_to_existing_posts.py
+```
+
+**When to run**:
+- Once to retroactively add links to posts published before automatic linking was implemented
+- Future posts will have automatic linking built-in via the Google Apps Script editor
+
 ## 📋 Post File Format
 
 Each blog post is an HTML file with this structure:
@@ -333,6 +353,14 @@ The blog editor (`google-apps-script/Index.html`) includes:
 6. **Category Pages**: All category pages are auto-generated - don't edit them manually.
 
 7. **Google Analytics**: All pages must include Google Analytics tracking. Run `add_google_analytics.py` after creating new posts to ensure tracking is added. The script automatically skips pages that already have it.
+
+8. **Automatic Linking**: The blog automatically links mentions of "TrueSight DAO" to [TrueSight.me](https://truesight.me) and "Agroverse" (case-insensitive) to [Agroverse.shop](https://agroverse.shop). This happens automatically during HTML conversion in the Google Apps Script editor, so you don't need to manually add these links. The system intelligently avoids linking text that's already inside HTML links or code blocks.
+
+   **For Existing Posts**: To add these links to posts published before this feature was implemented, run:
+   ```bash
+   python3 add_auto_links_to_existing_posts.py
+   ```
+   This will scan all blog posts and add the appropriate links where needed.
 
 ## 🔄 Typical Workflow Summary
 

@@ -85,6 +85,14 @@ Run the setup function to configure your credentials:
 - Click again to stop (or it stops automatically)
 - The transcribed text appears in the input field
 
+### Automatic Linking
+
+The blog editor automatically links mentions of:
+- **"TrueSight DAO"** → Links to [TrueSight.me](https://truesight.me)
+- **"Agroverse"** (case-insensitive) → Links to [Agroverse.shop](https://agroverse.shop)
+
+This happens automatically during HTML conversion, so you don't need to manually add these links. The system intelligently avoids linking text that's already inside HTML links or code blocks.
+
 ### Publishing
 
 1. Have a conversation with Grok to refine your post

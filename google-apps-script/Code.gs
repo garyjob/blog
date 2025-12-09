@@ -214,6 +214,13 @@ function callGrok(prompt, history) {
   messages.push({
     role: 'system',
     content: 'You are helping draft blog posts for garyteh.com. Match Gary Teh\'s authentic writing voice and style. ' +
+             '\n\nCRITICAL FORMATTING REQUIREMENT:\n' +
+             '- **ALWAYS start your response with the title at the very top, formatted as: # Title Here**\n' +
+             '- The title must be the first line of your response, before any other content.\n' +
+             '- Example format:\n' +
+             '  # Building an AI-Powered Blog Editor\n' +
+             '  \n' +
+             '  It hit me this morning, hunched over my laptop...\n' +
              '\n\nWRITING STYLE GUIDELINES:\n' +
              '- **Personal & Conversational**: Start with personal anecdotes, casual observations, or specific moments. Use "I" naturally. Example: "It hit me this morning, hunched over my laptop..."\n' +
              '- **Direct & Honest**: Use contractions naturally (I\'d, it\'s, we\'ve). Write like you\'re talking to a friend, not giving a corporate presentation. Be authentic, not polished.\n' +
@@ -226,10 +233,11 @@ function callGrok(prompt, history) {
              '- **Structure When Needed**: Use bullet points for lists, but keep paragraphs flowing. Don\'t force rigid frameworks.\n' +
              '- **End with Questions or Reflections**: Close with a question to the reader, a personal reflection, or a forward-looking thought.\n' +
              '\n\nIMPORTANT RESTRICTIONS:\n' +
-             '- **NEVER start responses with "Hey there it is Gary" or similar greetings. Start naturally with the content itself.**\n' +
+             '- **NEVER start responses with "Hey there it is Gary" or similar greetings. Start with the title (# Title), then the content itself.**\n' +
              '- **When mentioning beverages, use "cup of cacao" instead of "coffee". Gary prefers cacao, not coffee.**\n' +
              '\n\nPROCESS:\n' +
              '- The user gives raw ideas—help turn them into structured blog content with catchy title, intro, sections, wrap-up.\n' +
+             '- **Always format the title as the first line: # Title Here**\n' +
              '- Ask questions to dig deeper and understand their perspective.\n' +
              '- Suggest relevant categories based on content.\n' +
              '- After a few turns refining the content, say "Looks done—want to publish?"\n' +
@@ -445,6 +453,96 @@ function convertToHTML(text) {
   codeBlocks.forEach((block, index) => {
     html = html.replace('CODE_BLOCK_' + index, block);
   });
+  
+  // Auto-link TrueSight DAO and Agroverse (but not inside links, code, or HTML tags)
+  // This must happen after code blocks are restored but before paragraph conversion
+  // We process text nodes only, avoiding HTML tags and existing links
+  
+  // Helper function to check if a position is inside an HTML tag
+  function isInsideHTMLTag(text, pos) {
+    const before = text.substring(0, pos);
+    const lastOpen = before.lastIndexOf('<');
+    const lastClose = before.lastIndexOf('>');
+    // If last < is after last >, we're inside a tag
+    return lastOpen > lastClose;
+  }
+  
+  // Auto-link TrueSight DAO (case-sensitive for "TrueSight DAO" specifically)
+  let processed = '';
+  let searchIndex = 0;
+  const trueSightRegex = /TrueSight DAO/gi;
+  let trueSightMatch;
+  
+  while ((trueSightMatch = trueSightRegex.exec(html)) !== null) {
+    // Add everything before the match
+    processed += html.substring(searchIndex, trueSightMatch.index);
+    
+    // Check if we're inside an HTML tag
+    if (!isInsideHTMLTag(html, trueSightMatch.index)) {
+      // Check if already inside a link by looking for <a> before and </a> after
+      const beforeText = html.substring(0, trueSightMatch.index);
+      const afterText = html.substring(trueSightMatch.index + trueSightMatch[0].length);
+      const lastAOpen = beforeText.lastIndexOf('<a ');
+      const lastAClose = beforeText.lastIndexOf('</a>');
+      const nextAClose = afterText.indexOf('</a>');
+      
+      // If we're inside an <a> tag, don't link
+      if (lastAOpen > lastAClose && nextAClose !== -1) {
+        processed += trueSightMatch[0];
+      } else {
+        // Safe to link
+        processed += '<a href="https://truesight.me" target="_blank" rel="noopener noreferrer">TrueSight DAO</a>';
+      }
+    } else {
+      // Inside HTML tag, keep as is
+      processed += trueSightMatch[0];
+    }
+    
+    searchIndex = trueSightRegex.lastIndex;
+  }
+  
+  // Add remaining text
+  processed += html.substring(searchIndex);
+  html = processed;
+  
+  // Auto-link Agroverse (case-insensitive, word boundary)
+  processed = '';
+  searchIndex = 0;
+  const agroverseRegex = /\bAgroverse\b/gi;
+  let agroverseMatch;
+  
+  while ((agroverseMatch = agroverseRegex.exec(html)) !== null) {
+    // Add everything before the match
+    processed += html.substring(searchIndex, agroverseMatch.index);
+    
+    // Check if we're inside an HTML tag
+    if (!isInsideHTMLTag(html, agroverseMatch.index)) {
+      // Check if already inside a link
+      const beforeText = html.substring(0, agroverseMatch.index);
+      const afterText = html.substring(agroverseMatch.index + agroverseMatch[0].length);
+      const lastAOpen = beforeText.lastIndexOf('<a ');
+      const lastAClose = beforeText.lastIndexOf('</a>');
+      const nextAClose = afterText.indexOf('</a>');
+      
+      // If we're inside an <a> tag, don't link
+      if (lastAOpen > lastAClose && nextAClose !== -1) {
+        processed += agroverseMatch[0];
+      } else {
+        // Safe to link - preserve original case
+        const originalText = agroverseMatch[0];
+        processed += '<a href="https://agroverse.shop" target="_blank" rel="noopener noreferrer">' + originalText + '</a>';
+      }
+    } else {
+      // Inside HTML tag, keep as is
+      processed += agroverseMatch[0];
+    }
+    
+    searchIndex = agroverseRegex.lastIndex;
+  }
+  
+  // Add remaining text
+  processed += html.substring(searchIndex);
+  html = processed;
   
   // Convert paragraphs - split by double newlines
   const paragraphs = html.split(/\n\n+/);
@@ -1896,9 +1994,40 @@ function getPublishedPosts() {
 }
 
 /**
+ * Checks if a draft has been published by looking for the corresponding HTML file
+ * @param {string} draftFilename - Draft filename (e.g., "2025-12-02-title.md")
+ * @return {string|null} Published URL if exists, null otherwise
+ */
+function getPublishedUrlForDraft(draftFilename) {
+  try {
+    // Extract date and slug from draft filename
+    // Format: YYYY-MM-DD-slug.md
+    const match = draftFilename.match(/^(\d{4}-\d{2}-\d{2})-(.+)\.md$/);
+    if (!match) {
+      return null;
+    }
+    
+    const dateStr = match[1];
+    const slug = match[2];
+    const htmlFilename = `${dateStr}-${slug}.html`;
+    
+    // Check if the HTML file exists
+    const htmlContent = fetchGitHubFile(htmlFilename);
+    if (htmlContent) {
+      return `https://garyteh.com/${htmlFilename}`;
+    }
+    
+    return null;
+  } catch (e) {
+    Logger.log('Error checking published URL: ' + e.toString());
+    return null;
+  }
+}
+
+/**
  * Loads an existing draft from GitHub for editing
  * @param {string} filename - Draft filename (e.g., "2025-12-02-title.html" or "drafts/2025-12-02-title.html")
- * @return {Object} Draft data {title, content, categories, date, filename}
+ * @return {Object} Draft data {title, content, categories, date, filename, publishedUrl}
  */
 function loadExistingDraft(filename) {
   try {
@@ -2033,7 +2162,8 @@ function loadExistingDraft(filename) {
       categories: categories,
       date: date,
       filename: justFilename,
-      draftPath: draftPath
+      draftPath: draftPath,
+      publishedUrl: publishedUrl
     };
     
   } catch (e) {
@@ -2265,8 +2395,424 @@ function saveDraft(title, content, categories, existingFilename) {
 }
 
 /**
+ * Publishes a draft as a blog post
+ * Reads the draft .md file, converts it to HTML, and publishes it to the blog root
+ * @param {string} draftFilename - Filename of the draft to publish (e.g., "2025-12-02-title.md")
+ * @return {Object} Result with success status and URL
+ */
+function publishDraft(draftFilename) {
+  try {
+    // Ensure filename has drafts/ prefix
+    let draftPath = draftFilename;
+    if (!draftPath.startsWith('drafts/')) {
+      draftPath = `drafts/${draftFilename}`;
+    }
+    
+    // Fetch the draft file from GitHub
+    const draftContent = fetchGitHubFile(draftPath);
+    if (!draftContent) {
+      throw new Error('Draft not found: ' + draftPath);
+    }
+    
+    // Parse frontmatter and content
+    let title = '';
+    let dateStr = '';
+    let formattedDate = '';
+    let categories = [];
+    let markdownContent = '';
+    
+    if (draftContent.startsWith('---')) {
+      // Markdown format with frontmatter
+      const frontmatterEnd = draftContent.indexOf('---', 3);
+      if (frontmatterEnd !== -1) {
+        const frontmatter = draftContent.substring(3, frontmatterEnd).trim();
+        markdownContent = draftContent.substring(frontmatterEnd + 3).trim();
+        
+        // Parse frontmatter
+        const titleMatch = frontmatter.match(/^title:\s*"([^"]+)"|^title:\s*([^\n]+)/m);
+        if (titleMatch) {
+          title = (titleMatch[1] || titleMatch[2]).trim();
+        }
+        
+        const dateMatch = frontmatter.match(/^date:\s*(\d{4}-\d{2}-\d{2})/m);
+        if (dateMatch) {
+          dateStr = dateMatch[1];
+        }
+        
+        const formattedDateMatch = frontmatter.match(/^formattedDate:\s*"([^"]+)"/m);
+        if (formattedDateMatch) {
+          formattedDate = formattedDateMatch[1];
+        }
+        
+        const categoriesMatch = frontmatter.match(/^categories:\s*\[([^\]]+)\]/m);
+        if (categoriesMatch) {
+          const catArray = categoriesMatch[1].match(/"([^"]+)"/g);
+          if (catArray) {
+            categories = catArray.map(c => c.replace(/"/g, '').trim());
+          }
+        }
+      }
+    } else {
+      throw new Error('Draft does not have frontmatter. Please ensure it was saved correctly.');
+    }
+    
+    // If no title in frontmatter, try to extract from content (look for # Title)
+    if (!title) {
+      const titleMatch = markdownContent.match(/^#\s+(.+?)(?:\n|$)/m);
+      if (titleMatch) {
+        title = titleMatch[1].trim();
+        // Remove title from content
+        markdownContent = markdownContent.replace(/^#\s+.+?\n\n?/m, '').trim();
+      }
+    }
+    
+    if (!title) {
+      throw new Error('Could not find title in draft. Please ensure the draft has a title in frontmatter or as # Title in content.');
+    }
+    
+    // Use current date if not in frontmatter
+    if (!dateStr) {
+      const date = new Date();
+      dateStr = date.getFullYear() + '-' + 
+               String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+               String(date.getDate()).padStart(2, '0');
+    }
+    
+    // Format date if not in frontmatter
+    if (!formattedDate) {
+      const dateObj = new Date(dateStr);
+      formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+    
+    // Default categories if none
+    if (categories.length === 0) {
+      categories = ['Technology'];
+    }
+    
+    // Convert markdown to HTML
+    const htmlContent = convertToHTML(markdownContent);
+    
+    // Generate URL slug from title
+    const slug = title.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    
+    const filename = `${dateStr}-${slug}.html`;
+    
+    // Generate description from first paragraph (for meta tags)
+    let description = htmlContent.replace(/<[^>]+>/g, '').substring(0, 160).trim();
+    if (description.length === 160) {
+      description += '...';
+    }
+    
+    // Generate category links HTML
+    let categoryLinks = '';
+    categories.forEach(cat => {
+      const categorySlug = cat.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      categoryLinks += `<a href="categories/${categorySlug}.html" class="category-tag">${escapeHtml(cat)}</a>\n                `;
+    });
+    
+    // Generate category meta tags
+    let categoryMetaTags = '';
+    categories.forEach(cat => {
+      categoryMetaTags += `    <meta property="article:tag" content="${escapeHtml(cat)}">\n`;
+    });
+    
+    // Generate keywords for JSON-LD
+    const keywords = categories.join(', ');
+    
+    // Generate full HTML post
+    const postHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="${escapeHtml(title)} - ${escapeHtml(description)}">
+    <title>${escapeHtml(title)} - Gary Teh's Blog</title>
+    
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://garyteh.com/${filename}">
+    <meta property="og:title" content="${escapeHtml(title)}">
+    <meta property="og:description" content="${escapeHtml(description)}">
+    <meta property="og:site_name" content="Gary Teh's Blog">
+    <meta property="article:published_time" content="${dateStr}T00:00:00+00:00">
+    <meta property="article:author" content="Gary Teh">
+${categoryMetaTags}    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:url" content="https://garyteh.com/${filename}">
+    <meta name="twitter:title" content="${escapeHtml(title)}">
+    <meta name="twitter:description" content="${escapeHtml(description)}">
+    
+    <!-- Additional meta for better sharing -->
+    <meta name="author" content="Gary Teh">
+    <link rel="canonical" href="https://garyteh.com/${filename}">
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "${escapeHtml(title)}",
+  "description": "${escapeHtml(description)}",
+  "author": {
+    "@type": "Person",
+    "name": "Gary Teh"
+  },
+  "datePublished": "${dateStr}T00:00:00+00:00",
+  "dateModified": "${dateStr}T00:00:00+00:00",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Gary Teh's Blog",
+    "url": "https://garyteh.com"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://garyteh.com/${filename}"
+  },
+  "keywords": "${escapeHtml(keywords)}"
+}
+    </script>
+    
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag, a.category-tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+            color: #2c3e50;
+            text-decoration: none;
+        }
+        a.category-tag:hover {
+            background: #3498db;
+            color: white;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>${escapeHtml(title)}</h1>
+            <div class="post-meta">
+                <span class="post-date">${escapeHtml(formattedDate)}</span>
+                ${categoryLinks}
+            </div>
+        </div>
+
+        <div class="content">
+${htmlContent}
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2025</p>
+        </footer>
+    </div>
+    <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/f4002ef7c62ee64494321ba14/9c56fa20706b0138cf6fea672.js");</script>
+</body>
+</html>`;
+    
+    // Get SHA if post already exists (for update)
+    const postSHA = getGitHubFileSHA(filename);
+    
+    // Prepare file for commit
+    const files = [{
+      path: filename,
+      content: postHTML,
+      sha: postSHA // null for new, SHA for update
+    }];
+    
+    Logger.log('Publishing post: ' + filename + (postSHA ? ' (updating existing)' : ' (new post)'));
+    
+    // Commit to GitHub
+    const commitMessage = postSHA 
+      ? `Post updated: ${title}`
+      : `Post published: ${title}`;
+    
+    const result = commitToGitHub(files, commitMessage);
+    
+    Logger.log('Post published: ' + JSON.stringify(result));
+    
+    // Regenerate index.html to include the new post
+    try {
+      regenerateIndex();
+    } catch (e) {
+      Logger.log('Warning: Could not regenerate index.html: ' + e.message);
+      // Don't fail the publish if index regeneration fails
+    }
+    
+    return {
+      success: true,
+      filename: filename,
+      url: `https://garyteh.com/${filename}`,
+      message: postSHA ? 'Post updated successfully!' : 'Post published successfully!'
+    };
+    
+  } catch (e) {
+    Logger.log('Publish draft error: ' + e.toString());
+    return {
+      success: false,
+      error: e.message
+    };
+  }
+}
+
+/**
+ * Helper function to escape HTML entities
+ * @param {string} text - Text to escape
+ * @return {string} Escaped text
+ */
+function escapeHtml(text) {
+  if (!text) return '';
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
+/**
  * Main publish function - generates post, updates index, commits to GitHub
- * @deprecated Use saveDraft() instead - drafts are saved for review before publishing
+ * @deprecated Use publishDraft() instead - publishes from saved drafts
  * @param {string} title - Post title
  * @param {string} content - Post content (HTML)
  * @param {Array} categories - Array of category strings

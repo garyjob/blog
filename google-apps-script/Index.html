@@ -1010,6 +1010,24 @@
                 >
                     <span id="saveDraftBtnText">Save Draft</span>
                 </button>
+                <button 
+                    class="btn btn-success" 
+                    id="publishBtn"
+                    style="background: var(--success);"
+                >
+                    🚀 Publish
+                </button>
+            </div>
+            
+            <!-- Published Link Display -->
+            <div id="publishedLinkContainer" style="display: none; margin-top: 15px; padding: 12px; background: rgba(39, 174, 96, 0.1); border: 1px solid var(--success); border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <span style="color: var(--success); font-weight: 600;">✅ Published:</span>
+                    <a id="publishedLink" href="#" target="_blank" rel="noopener noreferrer" 
+                       style="color: var(--accent); text-decoration: underline; font-weight: 500; word-break: break-all;">
+                    </a>
+                    <span style="color: var(--text-secondary); font-size: 0.9em;">(Click to view)</span>
+                </div>
             </div>
         </div>
     </div>
@@ -1155,6 +1173,14 @@
             if (saveDraftBtn) {
                 saveDraftBtn.addEventListener('click', function() {
                     saveDraft();
+                });
+            }
+            
+            // Publish button
+            const publishBtn = document.getElementById('publishBtn');
+            if (publishBtn) {
+                publishBtn.addEventListener('click', function() {
+                    publishDraft();
                 });
             }
             
@@ -1903,6 +1929,141 @@
                 .saveDraft(title, content, categories, editingPostFilename);
         }
         
+        // Publish draft as blog post
+        function publishDraft() {
+            // Check if we're editing an existing draft
+            if (editingPostFilename) {
+                // Publish the existing draft
+                const publishBtn = document.getElementById('publishBtn');
+                publishBtn.disabled = true;
+                publishBtn.innerHTML = '<div class="loading"></div> Publishing...';
+                
+                google.script.run
+                    .withSuccessHandler(function(result) {
+                        if (result.success) {
+                            showStatus('✅ Post published successfully!', 'success');
+                            // Show published link
+                            showPublishedLink(result.url);
+                            publishBtn.disabled = false;
+                            publishBtn.innerHTML = '🚀 Publish';
+                            setTimeout(() => {
+                                showStatus('', '');
+                            }, 3000);
+                            // Don't clear chat - allow user to continue editing
+                        } else {
+                            showStatus('❌ Error: ' + result.error, 'error');
+                            publishBtn.disabled = false;
+                            publishBtn.innerHTML = '🚀 Publish';
+                        }
+                    })
+                    .withFailureHandler(function(error) {
+                        showStatus('❌ Error: ' + error.message, 'error');
+                        publishBtn.disabled = false;
+                        publishBtn.innerHTML = '🚀 Publish';
+                    })
+                    .publishDraft(editingPostFilename);
+            } else {
+                // Check if we have conversation to save first
+                if (conversationHistory.length < 2) {
+                    showStatus('Please save a draft first or load an existing draft to publish!', 'error');
+                    return;
+                }
+                
+                // Save draft first, then publish
+                showStatus('Saving draft first, then publishing...', 'success');
+                
+                // Extract title and content
+                let title = '';
+                let content = '';
+                let categories = [];
+                
+                // Find title (look for # Title at the start of assistant messages)
+                for (let msg of conversationHistory) {
+                    if (msg.role === 'assistant') {
+                        // Check for markdown title format: # Title
+                        const titleMatch = msg.content.match(/^#\s+(.+?)(?:\n|$)/m);
+                        if (titleMatch) {
+                            title = titleMatch[1].trim();
+                            // Remove title from content
+                            content = msg.content.replace(/^#\s+.+?\n\n?/m, '').trim();
+                        } else {
+                            // Try other title patterns
+                            const titleMatch2 = msg.content.match(/(?:title|heading):\s*(.+?)(?:\n|$)/i);
+                            if (titleMatch2) {
+                                title = titleMatch2[1].trim();
+                            }
+                            content += (content ? '\n\n' : '') + msg.content;
+                        }
+                    }
+                }
+                
+                // If no title found, use first user message
+                if (!title) {
+                    const firstUserMsg = conversationHistory.find(m => m.role === 'user');
+                    title = firstUserMsg ? firstUserMsg.content.substring(0, 60) : 'New Post';
+                }
+                
+                // Build content from all assistant messages if not already set
+                if (!content) {
+                    content = conversationHistory
+                        .filter(msg => msg.role === 'assistant')
+                        .map(msg => msg.content)
+                        .join('\n\n');
+                }
+                
+                // Default categories
+                if (categories.length === 0) {
+                    categories = ['Technology'];
+                }
+                
+                // Save draft first, then publish
+                const publishBtn = document.getElementById('publishBtn');
+                publishBtn.disabled = true;
+                publishBtn.innerHTML = '<div class="loading"></div> Publishing...';
+                
+                google.script.run
+                    .withSuccessHandler(function(saveResult) {
+                        if (saveResult.success) {
+                            // Now publish the draft we just saved
+                            google.script.run
+                                .withSuccessHandler(function(publishResult) {
+                                    if (publishResult.success) {
+                                        showStatus('✅ Post published successfully!', 'success');
+                                        // Show published link
+                                        showPublishedLink(publishResult.url);
+                                        publishBtn.disabled = false;
+                                        publishBtn.innerHTML = '🚀 Publish';
+                                        setTimeout(() => {
+                                            showStatus('', '');
+                                        }, 3000);
+                                        // Don't clear chat - allow user to continue editing
+                                    } else {
+                                        showStatus('❌ Error publishing: ' + publishResult.error, 'error');
+                                        publishBtn.disabled = false;
+                                        publishBtn.innerHTML = '🚀 Publish';
+                                    }
+                                })
+                                .withFailureHandler(function(error) {
+                                    showStatus('❌ Error: ' + error.message, 'error');
+                                    publishBtn.disabled = false;
+                                    publishBtn.innerHTML = '🚀 Publish';
+                                })
+                                .publishDraft(saveResult.filename);
+                        } else {
+                            showStatus('❌ Error saving draft: ' + saveResult.error, 'error');
+                            publishBtn.disabled = false;
+                            publishBtn.innerHTML = '🚀 Publish';
+                        }
+                    })
+                    .withFailureHandler(function(error) {
+                        showStatus('❌ Error: ' + error.message, 'error');
+                        publishBtn.disabled = false;
+                        publishBtn.innerHTML = '🚀 Publish';
+                    })
+                    .saveDraft(title, content, categories, null);
+            }
+        }
+        
         // Show load draft section
         function showLoadDraft() {
             const section = document.getElementById('loadPostSection');
@@ -2054,6 +2215,13 @@
                         // Enable save draft button
                         document.getElementById('saveDraftBtn').disabled = false;
                         
+                        // Show published link if draft has been published
+                        if (result.publishedUrl) {
+                            showPublishedLink(result.publishedUrl);
+                        } else {
+                            hidePublishedLink();
+                        }
+                        
                         showStatus('Loaded: ' + result.title, 'success');
                     } else {
                         showStatus('Error: ' + result.error, 'error');
@@ -2082,6 +2250,7 @@
                 saveConversation();
                 renderConversation();
                 document.getElementById('saveDraftBtn').disabled = true;
+                hidePublishedLink(); // Hide published link when clearing
                 showStatus('', '');
             }
         }
@@ -2095,6 +2264,25 @@
             } else {
                 statusDiv.textContent = '';
                 statusDiv.className = '';
+            }
+        }
+        
+        // Show published link
+        function showPublishedLink(url) {
+            const container = document.getElementById('publishedLinkContainer');
+            const link = document.getElementById('publishedLink');
+            if (container && link && url) {
+                link.href = url;
+                link.textContent = url;
+                container.style.display = 'block';
+            }
+        }
+        
+        // Hide published link
+        function hidePublishedLink() {
+            const container = document.getElementById('publishedLinkContainer');
+            if (container) {
+                container.style.display = 'none';
             }
         }
         
