@@ -266,6 +266,27 @@
             animation: pulse 1.5s infinite;
         }
         
+        .copy-btn {
+            background: rgba(108, 117, 125, 0.2);
+            border: 1px solid rgba(108, 117, 125, 0.3);
+            color: var(--text-primary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(108, 117, 125, 0.3);
+        }
+        
+        .copy-btn.copied {
+            background: rgba(39, 174, 96, 0.2);
+            border-color: rgba(39, 174, 96, 0.5);
+            color: var(--success);
+        }
+        
         /* Speed controls removed from messages - now in header */
         
         @media (max-width: 600px) {
@@ -348,6 +369,12 @@
             }
             
             .listen-btn {
+                padding: 6px 10px;
+                font-size: 0.85rem;
+                min-height: 32px;
+            }
+            
+            .copy-btn {
                 padding: 6px 10px;
                 font-size: 0.85rem;
                 min-height: 32px;
@@ -1661,6 +1688,16 @@
                     editMessage(messageIndex !== undefined ? messageIndex : conversationHistory.length - 1);
                 };
                 actionsDiv.appendChild(editBtn);
+                
+                // Add copy button for user messages
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.textContent = '📋 Copy';
+                copyBtn.onclick = function() {
+                    copyMessage(content, copyBtn);
+                };
+                actionsDiv.appendChild(copyBtn);
+                
                 messageDiv.appendChild(actionsDiv);
             }
             
@@ -1678,6 +1715,15 @@
                     toggleSpeech(content, messageId, listenBtn, currentSpeed);
                 };
                 actionsDiv.appendChild(listenBtn);
+                
+                // Add copy button for assistant messages
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.textContent = '📋 Copy';
+                copyBtn.onclick = function() {
+                    copyMessage(content, copyBtn);
+                };
+                actionsDiv.appendChild(copyBtn);
                 
                 messageDiv.appendChild(actionsDiv);
             }
@@ -2427,6 +2473,98 @@
             if (globalSpeechSpeed) {
                 globalSpeechSpeed.value = speed.toString();
             }
+        }
+        
+        // Copy message to clipboard
+        function copyMessage(content, button) {
+            // Clean the content - remove markdown formatting for plain text copy
+            let textToCopy = content;
+            
+            // Remove markdown images
+            textToCopy = textToCopy.replace(/!\[([^\]]*)\]\([^)]+\)/g, '');
+            
+            // Remove markdown formatting but keep text
+            textToCopy = textToCopy.replace(/\*\*(.*?)\*\*/g, '$1'); // Bold
+            textToCopy = textToCopy.replace(/\*(.*?)\*/g, '$1'); // Italic
+            textToCopy = textToCopy.replace(/`(.*?)`/g, '$1'); // Code
+            textToCopy = textToCopy.replace(/#{1,6}\s+/g, ''); // Headers
+            textToCopy = textToCopy.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'); // Links
+            
+            // Remove HTML tags if any
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = textToCopy;
+            textToCopy = tempDiv.textContent || tempDiv.innerText || textToCopy;
+            
+            // Clean up extra whitespace but preserve line breaks
+            textToCopy = textToCopy.replace(/\n{3,}/g, '\n\n').trim();
+            
+            // Use modern Clipboard API if available
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy)
+                    .then(function() {
+                        // Show success feedback
+                        const originalText = button.textContent;
+                        button.classList.add('copied');
+                        button.textContent = '✓ Copied!';
+                        
+                        // Reset after 2 seconds
+                        setTimeout(function() {
+                            button.classList.remove('copied');
+                            button.textContent = originalText;
+                        }, 2000);
+                    })
+                    .catch(function(err) {
+                        console.error('Failed to copy:', err);
+                        // Fallback to older method
+                        fallbackCopyTextToClipboard(textToCopy, button);
+                    });
+            } else {
+                // Fallback for older browsers
+                fallbackCopyTextToClipboard(textToCopy, button);
+            }
+        }
+        
+        // Fallback copy method for older browsers
+        function fallbackCopyTextToClipboard(text, button) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.top = '0';
+            textArea.style.left = '0';
+            textArea.style.width = '2em';
+            textArea.style.height = '2em';
+            textArea.style.padding = '0';
+            textArea.style.border = 'none';
+            textArea.style.outline = 'none';
+            textArea.style.boxShadow = 'none';
+            textArea.style.background = 'transparent';
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    // Show success feedback
+                    const originalText = button.textContent;
+                    button.classList.add('copied');
+                    button.textContent = '✓ Copied!';
+                    
+                    // Reset after 2 seconds
+                    setTimeout(function() {
+                        button.classList.remove('copied');
+                        button.textContent = originalText;
+                    }, 2000);
+                } else {
+                    showStatus('Failed to copy to clipboard', 'error');
+                }
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                showStatus('Failed to copy to clipboard', 'error');
+            }
+            
+            document.body.removeChild(textArea);
         }
     </script>
 </body>

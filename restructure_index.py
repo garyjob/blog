@@ -272,12 +272,31 @@ def main():
         index_content = f.read()
     
     # Extract the header and styles (everything before year sections)
-    header_match = re.search(r'(.*?)(<div class="year-section")', index_content, re.DOTALL)
-    if not header_match:
-        print("Could not find header section")
-        return
-    
-    header_html = header_match.group(1)
+    # Remove any existing archive-nav sections to avoid duplicates
+    # Find the search box and keep everything up to that point
+    search_box_match = re.search(r'(.*?)(<div class="search-box")', index_content, re.DOTALL)
+    if search_box_match:
+        # Get header up to search box
+        header_start = search_box_match.group(1)
+        # Find where year-section starts
+        year_section_match = re.search(r'(<div class="search-box".*?</div>.*?)(<div class="year-section")', index_content, re.DOTALL)
+        if year_section_match:
+            # Keep search box but remove any archive-nav sections between search and year-section
+            search_section = year_section_match.group(1)
+            # Remove all archive-nav divs from search section
+            search_section = re.sub(r'<div class="archive-nav"[^>]*>.*?</div>\s*', '', search_section, flags=re.DOTALL)
+            header_html = header_start + search_section
+        else:
+            header_html = header_start
+    else:
+        # Fallback: extract header and remove all existing archive-nav sections
+        header_match = re.search(r'(.*?)(<div class="year-section")', index_content, re.DOTALL)
+        if not header_match:
+            print("Could not find header section")
+            return
+        header_html = header_match.group(1)
+        # Remove all existing archive-nav sections from header
+        header_html = re.sub(r'<div class="archive-nav"[^>]*>.*?</div>\s*', '', header_html, flags=re.DOTALL)
     
     # Extract footer
     footer_match = re.search(r'(<footer>.*?</footer>)', index_content, re.DOTALL)
