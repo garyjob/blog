@@ -2155,6 +2155,15 @@ function loadExistingDraft(filename) {
       title = justFilename.replace(/\.(md|html)$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/-/g, ' ');
     }
     
+    // Check if this draft has been published
+    let publishedUrl = null;
+    try {
+      publishedUrl = getPublishedUrlForDraft(justFilename);
+    } catch (e) {
+      Logger.log('Error checking published URL for draft: ' + e.toString());
+      publishedUrl = null;
+    }
+    
     return {
       success: true,
       title: title,
@@ -2163,14 +2172,15 @@ function loadExistingDraft(filename) {
       date: date,
       filename: justFilename,
       draftPath: draftPath,
-      publishedUrl: publishedUrl
+      publishedUrl: publishedUrl || null // Always include publishedUrl, even if null
     };
     
   } catch (e) {
     Logger.log('Error loading draft: ' + e.toString());
     return {
       success: false,
-      error: e.message
+      error: e.message,
+      publishedUrl: null // Include publishedUrl even on error
     };
   }
 }
@@ -2489,6 +2499,106 @@ function publishDraft(draftFilename) {
       categories = ['Technology'];
     }
     
+    // Clean markdown content: remove metadata and conversation artifacts
+    // Remove everything from "Suggested Categories" or "Categories:" onwards (case-insensitive, multiline)
+    const contentLower = markdownContent.toLowerCase();
+    
+    // Check for both "Suggested Categories" and "Categories:" (as metadata, not in frontmatter)
+    let categoriesIndex = contentLower.indexOf('suggested categories');
+    if (categoriesIndex === -1) {
+      // Also check for standalone "Categories:" (not in frontmatter, which would be "categories:")
+      // Look for "Categories:" at the start of a line or after a newline
+      const categoriesRegex = /(?:\n|^)\s*Categories:\s*/i;
+      const match = markdownContent.search(categoriesRegex);
+      if (match !== -1) {
+        categoriesIndex = match;
+      }
+    }
+    
+    if (categoriesIndex !== -1) {
+      // Find the start of the line containing the categories metadata
+      let lineStart = categoriesIndex;
+      while (lineStart > 0 && markdownContent[lineStart - 1] !== '\n') {
+        lineStart--;
+      }
+      // Remove everything from that line onwards
+      markdownContent = markdownContent.substring(0, lineStart).trim();
+      Logger.log('Removed categories metadata and everything after it');
+    }
+    
+    // Remove common conversation artifacts (more aggressive patterns)
+    const conversationPatterns = [
+      /Looks done[—\-]?want to publish\?/gi,
+      /I've corrected.*?Everything else remains as is.*?Looks done/gs,
+      /I've corrected.*?Everything else remains as is.*?solid piece/gs,
+      /Awesome, glad you're feeling good.*?let's hit publish!/gs,
+      /Awesome, glad you're feeling good.*?ready to go live/gs,
+      /If there's anything last-minute.*?Otherwise, let's hit publish!/gs,
+      /I've got it locked in.*?let's hit publish!/gs,
+      /I've got it locked in.*?ready to go live.*?let's hit publish!/gs,
+      /I'll make sure it's formatted properly.*?let's hit publish!/gs,
+      /Otherwise, let's hit publish!/gi
+    ];
+    
+    conversationPatterns.forEach(pattern => {
+      const beforeLength = markdownContent.length;
+      markdownContent = markdownContent.replace(pattern, '').trim();
+      if (markdownContent.length < beforeLength) {
+        Logger.log('Removed conversation artifact: ' + pattern.toString());
+      }
+    });
+    
+    // Remove any remaining lines that look like conversation metadata
+    // Look for lines that contain phrases like "corrected", "remains as is", "ready to go live", etc.
+    const metadataLines = markdownContent.split('\n').filter(line => {
+      const lowerLine = line.toLowerCase().trim();
+      return !(
+        lowerLine.includes('corrected') && lowerLine.includes('remains as is') ||
+        lowerLine.includes('awesome, glad') ||
+        lowerLine.includes('ready to go live') ||
+        lowerLine.includes("let's hit publish") ||
+        lowerLine.includes('formatted properly') ||
+        lowerLine.includes('last-minute') && lowerLine.includes('tweak')
+      );
+    });
+    
+    if (metadataLines.length < markdownContent.split('\n').length) {
+      markdownContent = metadataLines.join('\n').trim();
+      Logger.log('Removed metadata lines from content');
+    }
+    
+    // Remove duplicate content blocks
+    // Split by double newlines (paragraphs)
+    const paragraphs = markdownContent.split(/\n\n+/);
+    const uniqueParagraphs = [];
+    const seenParagraphs = new Set();
+    
+    paragraphs.forEach(para => {
+      const normalized = para.trim().toLowerCase().replace(/\s+/g, ' ');
+      // Only add if we haven't seen this exact paragraph before
+      // Minimum length check to avoid removing short legitimate repetitions
+      if (!seenParagraphs.has(normalized) && normalized.length > 20) {
+        seenParagraphs.add(normalized);
+        uniqueParagraphs.push(para);
+      }
+    });
+    
+    markdownContent = uniqueParagraphs.join('\n\n').trim();
+    
+    // Additional check: if content appears to be duplicated (same first 200 chars appear twice)
+    const first200Chars = markdownContent.substring(0, 200).trim();
+    const first200Normalized = first200Chars.toLowerCase().replace(/\s+/g, ' ');
+    const restOfContent = markdownContent.substring(200);
+    
+    // Check if the beginning pattern appears again later in the content
+    const duplicateIndex = restOfContent.toLowerCase().replace(/\s+/g, ' ').indexOf(first200Normalized);
+    if (duplicateIndex > 50) {
+      // Likely duplicate - keep only the first occurrence
+      const estimatedDuplicateStart = 200 + duplicateIndex - 50; // Some buffer
+      markdownContent = markdownContent.substring(0, estimatedDuplicateStart).trim();
+      Logger.log('Removed duplicate content block from markdown');
+    }
+    
     // Convert markdown to HTML
     const htmlContent = convertToHTML(markdownContent);
     
@@ -2708,6 +2818,66 @@ ${categoryMetaTags}
             border-radius: 5px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        .listen-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .listen-btn:hover:not(:disabled) {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+        .listen-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .listen-btn.playing {
+            background: #e74c3c;
+        }
+        .listen-btn.playing:hover {
+            background: #c0392b;
+        }
+        .speech-speed-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .speech-speed-controls label {
+            font-weight: 500;
+        }
+        .speech-speed-controls select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .speech-speed-controls select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
         footer {
             margin-top: 50px;
             padding-top: 20px;
@@ -2735,7 +2905,26 @@ ${categoryMetaTags}
             </div>
         </div>
 
-        <div class="content">
+        <div class="audio-controls">
+            <button id="listenBtn" class="listen-btn">
+                <span id="listenIcon">🔊</span>
+                <span id="listenText">Listen</span>
+            </button>
+            <div class="speech-speed-controls">
+                <label for="speedSelect">Speed:</label>
+                <select id="speedSelect">
+                    <option value="0.5">0.5x</option>
+                    <option value="0.75">0.75x</option>
+                    <option value="1">1x</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="1.75">1.75x</option>
+                    <option value="2">2x</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="content" id="postContent">
 ${htmlContent}
         </div>
 
@@ -2745,6 +2934,121 @@ ${htmlContent}
         </footer>
     </div>
     <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/f4002ef7c62ee64494321ba14/9c56fa20706b0138cf6fea672.js");</script>
+    <script>
+        (function() {
+            if (!('speechSynthesis' in window)) {
+                document.getElementById('listenBtn').disabled = true;
+                document.getElementById('listenBtn').title = 'Text-to-speech not supported in this browser';
+                return;
+            }
+            
+            let currentUtterance = null;
+            let isPlaying = false;
+            const listenBtn = document.getElementById('listenBtn');
+            const listenIcon = document.getElementById('listenIcon');
+            const listenText = document.getElementById('listenText');
+            const speedSelect = document.getElementById('speedSelect');
+            const postContent = document.getElementById('postContent');
+            
+            // Load saved speed preference (defaults to 1x if not set)
+            const savedSpeed = localStorage.getItem('blogSpeechSpeed') || '1';
+            
+            // Set the selected option based on saved preference
+            speedSelect.value = savedSpeed;
+            
+            // Ensure the visual selection matches (in case the value wasn't in the list)
+            if (!speedSelect.options[speedSelect.selectedIndex] || 
+                speedSelect.options[speedSelect.selectedIndex].value !== savedSpeed) {
+                // Find the matching option
+                for (let i = 0; i < speedSelect.options.length; i++) {
+                    if (speedSelect.options[i].value === savedSpeed) {
+                        speedSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            // Save speed preference when changed (persists across all blog posts)
+            speedSelect.addEventListener('change', function() {
+                const newSpeed = speedSelect.value;
+                localStorage.setItem('blogSpeechSpeed', newSpeed);
+                // Update current utterance if playing
+                if (currentUtterance) {
+                    currentUtterance.rate = parseFloat(newSpeed);
+                }
+            });
+            
+            function getTextContent() {
+                // Get all text from post content, excluding code blocks and script tags
+                const content = postContent.cloneNode(true);
+                // Remove script and style tags
+                content.querySelectorAll('script, style, pre, code').forEach(el => el.remove());
+                // Get text content
+                return content.textContent || content.innerText || '';
+            }
+            
+            function toggleSpeech() {
+                if (isPlaying && currentUtterance) {
+                    // Stop speaking
+                    window.speechSynthesis.cancel();
+                    currentUtterance = null;
+                    isPlaying = false;
+                    listenBtn.classList.remove('playing');
+                    listenIcon.textContent = '🔊';
+                    listenText.textContent = 'Listen';
+                } else {
+                    // Start speaking
+                    const text = getTextContent();
+                    if (!text.trim()) {
+                        alert('No content to read');
+                        return;
+                    }
+                    
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = parseFloat(speedSelect.value);
+                    utterance.pitch = 1;
+                    utterance.volume = 1;
+                    
+                    utterance.onstart = function() {
+                        isPlaying = true;
+                        listenBtn.classList.add('playing');
+                        listenIcon.textContent = '⏸️';
+                        listenText.textContent = 'Pause';
+                    };
+                    
+                    utterance.onend = function() {
+                        isPlaying = false;
+                        currentUtterance = null;
+                        listenBtn.classList.remove('playing');
+                        listenIcon.textContent = '🔊';
+                        listenText.textContent = 'Listen';
+                    };
+                    
+                    utterance.onerror = function(event) {
+                        console.error('Speech synthesis error:', event);
+                        isPlaying = false;
+                        currentUtterance = null;
+                        listenBtn.classList.remove('playing');
+                        listenIcon.textContent = '🔊';
+                        listenText.textContent = 'Listen';
+                        alert('Error reading text. Please try again.');
+                    };
+                    
+                    currentUtterance = utterance;
+                    window.speechSynthesis.speak(utterance);
+                }
+            }
+            
+            listenBtn.addEventListener('click', toggleSpeech);
+            
+            // Stop speech when page is unloaded
+            window.addEventListener('beforeunload', function() {
+                if (isPlaying) {
+                    window.speechSynthesis.cancel();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>`;
     
@@ -2769,14 +3073,18 @@ ${htmlContent}
     
     Logger.log('Post published: ' + JSON.stringify(result));
     
-    // Regenerate index.html to include the new post
+    // Update category pages (non-blocking - don't wait for completion)
     try {
-      regenerateIndex();
+      updateCategoryPages(categories, title, filename, dateStr, formattedDate);
     } catch (e) {
-      Logger.log('Warning: Could not regenerate index.html: ' + e.message);
-      // Don't fail the publish if index regeneration fails
+      Logger.log('Warning: Could not update category pages: ' + e.message);
+      // Don't fail the publish if category pages fail
     }
     
+    // Return immediately - index regeneration is slow and can cause timeouts
+    // Index can be regenerated separately via regenerateIndex() function if needed
+    // Note: Index regeneration removed from publish flow to prevent timeouts
+    // To regenerate index.html, call regenerateIndex() separately
     return {
       success: true,
       filename: filename,
@@ -2791,6 +3099,299 @@ ${htmlContent}
       error: e.message
     };
   }
+}
+
+/**
+ * Updates category pages for a published blog post
+ * Creates category pages if they don't exist, or adds the post link to existing pages
+ * @param {Array<string>} categories - Array of category names
+ * @param {string} postTitle - Title of the blog post
+ * @param {string} postFilename - Filename of the blog post (e.g., "2025-12-02-title.html")
+ * @param {string} postDate - Date in YYYY-MM-DD format
+ * @param {string} formattedDate - Formatted date string
+ */
+function updateCategoryPages(categories, postTitle, postFilename, postDate, formattedDate) {
+  try {
+    categories.forEach(category => {
+      try {
+        const categorySlug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const categoryPath = `categories/${categorySlug}.html`;
+        
+        // Check if category page exists
+        let categoryContent = fetchGitHubFile(categoryPath);
+        let isNewCategory = !categoryContent;
+        
+        if (isNewCategory) {
+          // Create new category page
+          categoryContent = generateCategoryPageHTML(category, []);
+        }
+        
+        // Parse existing posts from category page
+        const existingPosts = parsePostsFromCategoryPage(categoryContent);
+        
+        // Check if post already exists in category page
+        const postExists = existingPosts.some(p => p.filename === postFilename);
+        
+        if (!postExists) {
+          // Add new post to the list
+          existingPosts.push({
+            title: postTitle,
+            filename: postFilename,
+            date: postDate,
+            formattedDate: formattedDate
+          });
+          
+          // Sort posts by date (newest first)
+          existingPosts.sort((a, b) => {
+            const dateA = new Date(a.date);
+            const dateB = new Date(b.date);
+            return dateB - dateA;
+          });
+          
+          // Regenerate category page HTML
+          categoryContent = generateCategoryPageHTML(category, existingPosts);
+          
+          // Get SHA if category page exists
+          const categorySHA = getGitHubFileSHA(categoryPath);
+          
+          // Commit updated category page
+          const files = [{
+            path: categoryPath,
+            content: categoryContent,
+            sha: categorySHA
+          }];
+          
+          const commitMessage = isNewCategory 
+            ? `Create category page: ${category}`
+            : `Add post to category: ${category} - ${postTitle}`;
+          
+          commitToGitHub(files, commitMessage);
+          Logger.log(`Category page ${categoryPath} updated successfully`);
+        } else {
+          Logger.log(`Post ${postFilename} already exists in category ${category}`);
+        }
+      } catch (e) {
+        Logger.log(`Error updating category page for ${category}: ${e.toString()}`);
+        // Continue with other categories
+      }
+    });
+  } catch (e) {
+    Logger.log('Error in updateCategoryPages: ' + e.toString());
+    throw e;
+  }
+}
+
+/**
+ * Generates HTML for a category page
+ * @param {string} categoryName - Name of the category
+ * @param {Array<Object>} posts - Array of post objects with title, filename, date, formattedDate
+ * @return {string} Complete HTML for the category page
+ */
+function generateCategoryPageHTML(categoryName, posts) {
+  // Group posts by year
+  const postsByYear = {};
+  posts.forEach(post => {
+    const year = post.date.substring(0, 4);
+    if (!postsByYear[year]) {
+      postsByYear[year] = [];
+    }
+    postsByYear[year].push(post);
+  });
+  
+  // Get years in descending order
+  const years = Object.keys(postsByYear).sort((a, b) => parseInt(b) - parseInt(a));
+  
+  // Generate posts HTML by year
+  let postsHTML = '';
+  years.forEach(year => {
+    const yearPosts = postsByYear[year];
+    postsHTML += `        <div class="year-section" data-year="${year}">
+            <h2 class="year-header">${year} <span style="font-size: 0.6em; color: #95a5a6;">(${yearPosts.length} ${yearPosts.length === 1 ? 'post' : 'posts'})</span></h2>
+`;
+    yearPosts.forEach(post => {
+      postsHTML += `            <div class="post">
+                <div class="post-title"><a href="../${escapeHtml(post.filename)}">${escapeHtml(post.title)}</a></div>
+                <div class="post-meta">
+                    <span class="post-date">${escapeHtml(post.date)}</span>
+                </div>
+            </div>
+`;
+    });
+    postsHTML += `        </div>
+`;
+  });
+  
+  const totalPosts = posts.length;
+  
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-F4W32NLZDE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-F4W32NLZDE');
+    </script>
+    <title>${escapeHtml(categoryName)} - Gary Teh's Blog</title>
+    <meta name="description" content="All posts in the ${escapeHtml(categoryName)} category on Gary Teh's Blog">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .stats {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            color: #555;
+        }
+        .year-section {
+            margin-bottom: 40px;
+        }
+        .year-header {
+            color: #3498db;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        .post {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #fafafa;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+        .post:hover {
+            background: #f0f8ff;
+            border-left-color: #2980b9;
+            transform: translateX(5px);
+        }
+        .post-title {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+        .post-title a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .post-title a:hover {
+            color: #3498db;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to all posts</a>
+        
+        <header>
+            <h1>${escapeHtml(categoryName)}</h1>
+            <div class="stats">
+                <strong>${totalPosts} ${totalPosts === 1 ? 'post' : 'posts'}</strong> in this category
+            </div>
+        </header>
+${postsHTML}
+        <footer>
+            <p><a href="../index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2025</p>
+        </footer>
+    </div>
+    <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/f4002ef7c62ee64494321ba14/9c56fa20706b0138cf6fea672.js");</script>
+</body>
+</html>`;
+}
+
+/**
+ * Parses posts from an existing category page HTML
+ * @param {string} categoryHTML - HTML content of the category page
+ * @return {Array<Object>} Array of post objects with title, filename, date, formattedDate
+ */
+function parsePostsFromCategoryPage(categoryHTML) {
+  const posts = [];
+  
+  // Match post entries in the HTML
+  const postPattern = /<div class="post">\s*<div class="post-title"><a href="\.\.\/([^"]+)">([^<]+)<\/a><\/div>\s*<div class="post-meta">\s*<span class="post-date">([^<]+)<\/span>/g;
+  let match;
+  
+  while ((match = postPattern.exec(categoryHTML)) !== null) {
+    posts.push({
+      filename: match[1],
+      title: match[2],
+      date: match[3],
+      formattedDate: match[3] // Use date as formatted date for now
+    });
+  }
+  
+  return posts;
 }
 
 /**
