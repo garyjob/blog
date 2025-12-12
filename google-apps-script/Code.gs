@@ -2122,10 +2122,18 @@ function loadExistingDraft(filename) {
           .trim();
       }
       
-      // Extract categories from category-tag spans
-      const categoryMatches = draftContent.matchAll(/<span class="category-tag">([^<]+)<\/span>/g);
+      // Extract categories from category-tag links or spans
+      // Match both <a> and <span> tags with class="category-tag" for backward compatibility
+      const categoryMatches = draftContent.matchAll(/<a[^>]*class="category-tag"[^>]*>([^<]+)<\/a>/gi);
       for (const match of categoryMatches) {
         categories.push(match[1].trim());
+      }
+      // Also check for <span> tags (legacy format) if no <a> tags found
+      if (categories.length === 0) {
+        const spanMatches = draftContent.matchAll(/<span class="category-tag">([^<]+)<\/span>/gi);
+        for (const match of spanMatches) {
+          categories.push(match[1].trim());
+        }
       }
       
       // Extract date from post-date span or filename
@@ -2248,11 +2256,19 @@ function loadExistingPost(filename) {
         .trim();
     }
     
-    // Extract categories from category-tag spans
+    // Extract categories from category-tag links or spans
+    // Match both <a> and <span> tags with class="category-tag" for backward compatibility
     const categories = [];
-    const categoryMatches = postHTML.matchAll(/<span class="category-tag">([^<]+)<\/span>/g);
+    const categoryMatches = postHTML.matchAll(/<a[^>]*class="category-tag"[^>]*>([^<]+)<\/a>/gi);
     for (const match of categoryMatches) {
       categories.push(match[1].trim());
+    }
+    // Also check for <span> tags (legacy format) if no <a> tags found
+    if (categories.length === 0) {
+      const spanMatches = postHTML.matchAll(/<span class="category-tag">([^<]+)<\/span>/gi);
+      for (const match of spanMatches) {
+        categories.push(match[1].trim());
+      }
     }
     
     // Extract date from post-date span or filename
@@ -2494,16 +2510,8 @@ function publishDraft(draftFilename) {
       formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     }
     
-    // Default categories if none
-    if (categories.length === 0) {
-      categories = ['Technology'];
-    }
-    
-    // Clean markdown content: remove metadata and conversation artifacts
-    // Remove everything from "Suggested Categories" or "Categories:" onwards (case-insensitive, multiline)
+    // Extract categories from "Suggested Categories" line if present (before removing it)
     const contentLower = markdownContent.toLowerCase();
-    
-    // Check for both "Suggested Categories" and "Categories:" (as metadata, not in frontmatter)
     let categoriesIndex = contentLower.indexOf('suggested categories');
     if (categoriesIndex === -1) {
       // Also check for standalone "Categories:" (not in frontmatter, which would be "categories:")
@@ -2516,14 +2524,81 @@ function publishDraft(draftFilename) {
     }
     
     if (categoriesIndex !== -1) {
-      // Find the start of the line containing the categories metadata
+      // Extract the line containing the categories
       let lineStart = categoriesIndex;
       while (lineStart > 0 && markdownContent[lineStart - 1] !== '\n') {
         lineStart--;
       }
+      let lineEnd = categoriesIndex;
+      while (lineEnd < markdownContent.length && markdownContent[lineEnd] !== '\n') {
+        lineEnd++;
+      }
+      const categoriesLine = markdownContent.substring(lineStart, lineEnd);
+      
+      // Extract categories from the line
+      // Pattern examples:
+      //   "**Suggested Categories:** Category1, Category2, Category3"
+      //   "*Suggested Categories:* Category1, Category2"
+      //   "Categories: Category1, Category2"
+      // Handle markdown bold formatting (**text** or *text*)
+      
+      // Try multiple patterns to handle different markdown formats
+      let categoriesText = null;
+      
+      // Pattern 1: **Suggested Categories:** followed by categories
+      let match = categoriesLine.match(/\*{1,2}\s*Suggested Categories:\s*\*{1,2}\s*(.+)$/i);
+      if (match && match[1]) {
+        categoriesText = match[1].trim();
+      }
+      
+      // Pattern 2: Suggested Categories: (without bold formatting)
+      if (!categoriesText) {
+        match = categoriesLine.match(/Suggested Categories:\s*(.+)$/i);
+        if (match && match[1]) {
+          categoriesText = match[1].trim();
+        }
+      }
+      
+      // Pattern 3: Categories: (without "Suggested")
+      if (!categoriesText) {
+        match = categoriesLine.match(/(?:\*{1,2})?\s*Categories:\s*(?:\*{1,2})?\s*(.+)$/i);
+        if (match && match[1]) {
+          categoriesText = match[1].trim();
+        }
+      }
+      
+      if (categoriesText) {
+        // Remove any trailing markdown formatting
+        categoriesText = categoriesText.replace(/\*+$/, '').trim();
+        
+        const suggestedCategories = categoriesText
+          .split(',')
+          .map(cat => cat.trim())
+          .filter(cat => cat.length > 0);
+        
+        // Merge with existing categories (avoid duplicates, case-insensitive)
+        const existingCategoriesLower = categories.map(c => c.toLowerCase());
+        suggestedCategories.forEach(cat => {
+          if (!existingCategoriesLower.includes(cat.toLowerCase())) {
+            categories.push(cat);
+          }
+        });
+        
+        Logger.log('Extracted ' + suggestedCategories.length + ' categories from "Suggested Categories" line: ' + suggestedCategories.join(', '));
+        Logger.log('Final categories array: ' + categories.join(', '));
+      } else {
+        Logger.log('Warning: Could not extract categories from line: ' + categoriesLine);
+        Logger.log('Line length: ' + categoriesLine.length);
+      }
+      
       // Remove everything from that line onwards
       markdownContent = markdownContent.substring(0, lineStart).trim();
       Logger.log('Removed categories metadata and everything after it');
+    }
+    
+    // Default categories if none
+    if (categories.length === 0) {
+      categories = ['Technology'];
     }
     
     // Remove common conversation artifacts (more aggressive patterns)
@@ -3081,10 +3156,33 @@ ${htmlContent}
       // Don't fail the publish if category pages fail
     }
     
-    // Return immediately - index regeneration is slow and can cause timeouts
-    // Index can be regenerated separately via regenerateIndex() function if needed
-    // Note: Index regeneration removed from publish flow to prevent timeouts
-    // To regenerate index.html, call regenerateIndex() separately
+    // Regenerate index.html (non-blocking - don't fail publish if it times out)
+    try {
+      Logger.log('Regenerating index.html...');
+      Logger.log('Starting index regeneration for new post: ' + title);
+      const regeneratedIndex = regenerateIndexHTML();
+      if (!regeneratedIndex) {
+        throw new Error('regenerateIndexHTML() returned null or empty');
+      }
+      Logger.log('Index HTML generated successfully, length: ' + regeneratedIndex.length);
+      const indexSHA = getGitHubFileSHA('index.html');
+      Logger.log('Got index.html SHA: ' + (indexSHA || 'null (new file)'));
+      const indexFiles = [{
+        path: 'index.html',
+        content: regeneratedIndex,
+        sha: indexSHA
+      }];
+      const commitResult = commitToGitHub(indexFiles, 'Auto-updated index.html with new post: ' + title);
+      Logger.log('Index.html commit result: ' + JSON.stringify(commitResult));
+      Logger.log('Index.html updated successfully');
+    } catch (e) {
+      Logger.log('ERROR: Could not update index.html: ' + e.toString());
+      Logger.log('Error stack: ' + (e.stack || 'no stack trace'));
+      Logger.log('You can manually regenerate index.html by calling regenerateIndex() function');
+      Logger.log('Or run: python3 restructure_index.py');
+      // Don't fail the publish if index regeneration fails or times out
+    }
+    
     return {
       success: true,
       filename: filename,
