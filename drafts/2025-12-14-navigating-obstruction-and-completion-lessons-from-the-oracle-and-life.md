@@ -1,0 +1,38 @@
+---
+title: "Navigating Obstruction and Completion: Lessons from the Oracle and Life"
+date: 2025-12-14
+formattedDate: "December 13, 2025"
+categories: ["Technology"]
+---
+
+I was sipping my cup of cacao this morning, staring at the I Ching reading on my screen, and it hit me—sometimes, the universe just lays it out for you, doesn’t it? Today’s oracle casting brought up Hexagram 39, *Obstruction*, with a nudge to “further the southwest,” and Hexagram 63, *After Completion*, promising success in small matters but warning of disorder at the end. If that doesn’t scream “watch your step, Gary,” I don’t know what does. You can check the full reading or cast your own at [oracle.truesight.me](https://oracle.truesight.me/?reading=6-8-7-8-7-8), by the way. But as I mulled over these ancient words, they started weaving into the threads of my day-to-day—projects like Agroverse, cacao logistics in Brazil, and even personal ghosts I’ve been carrying around.
+
+Let’s unpack this, piece by piece, because I’ve got a lot swirling in my head—and maybe you’ll see something in here that resonates with your own obstacles or completions.
+
+### Obstruction in Agroverse: Aligning Systems with Human Nature
+First up, *Obstruction*. The southwest furthers—okay, maybe that’s a call to pivot or find a softer path. Funny enough, I’m literally in the southwest right now, circulating between the Arizona and California deserts in the U.S. Feels like a figurative manifestation of the Yi Jing’s symbolism, like I’m physically walking the path it suggested. I’ve been thinking about this a lot with Agroverse, a project I’ve shared with the Truesight DAO community. We’re trying to tie tree planting to product sales via unique QR codes, but after looking at the inventory Elinor’s managing, I’m realizing our assumptions might be way off. Out in the field, things aren’t as neat as a spreadsheet. 
+
+Here’s the rub: we ship bags to Elinor with batch QR codes—all the same for a batch of 10. When she sends payment, we log how many sold, not who bought what. Customers scan, register their email, and expect a tree planted. But if only 3 bags sell, and 10 register, we plant 3 trees. Seven folks “share” a tree without knowing it. Is that a problem? From a user experience angle, probably not—they’ll never know. But it nags at me. Are we promising something we can’t fully deliver?
+
+And then there’s the reality in Pará State with Jedelcio and the farmers. I’m skeptical they’ll snap photos of every planted tree. Honestly, why would they? Key observation: we can’t bend people to fit a system; we’ve gotta design around how people naturally behave. If that means decoupling sales from planting or simplifying tracking, so be it. If it doesn’t work, we shouldn’t force it. Climate chaos might be 50 years out—plenty of time. If this flops, someone else will crack it. Meanwhile, cities will sink or burn. It’s sad, sure, but transient—part of the cycle.
+
+### After Completion: Small Wins and Letting Go
+Hexagram 63, *After Completion*, talks about success in small matters but disorder at the end. A reminder not to overreach. I see this in my step back from the European front—leaving space for Hans-Martin and Andreas to step in. They’re taking over, which is good. I’m not the guy to facilitate cacao experiences at the WEF in Davos, even if I can roast, peel, blend, brew, and serve (pretty mechanical, honestly 🤣). Andrea, the “WEF Cacao Shaman Falcon,” is better suited for that vibe. Meanwhile, Elinor’s got a vending tent at Schooliepalooza here in the Arizona desert during the same window. Small wins, different places—let’s keep momentum without forcing my hand everywhere.
+
+But disorder lurks. Take the cacao in a Brazilian warehouse. I’ve been on Matheus about CO2 treatment—last update was November 28th, over two weeks ago. Insects are showing up. Further delays, and the batch could be trash. He’s struggling to schedule fumigation and promised an update by Tuesday, 12pm Brazil time. Fingers crossed, but I’m not holding my breath. Another lesson in not forcing outcomes—observe, adapt, or accept the loss.
+
+### Reflections for the Day: Visits and Ghosts to Rest
+This reading stirred something deeper—*After Completion* feels like a call to let go. I’m talking personal ghosts—people, memories, expectations. There’s Alex Chiu, who died on Mount Denali this year. Or Kelly, an engineer from my old team, who took her life years ago. Even Minashi, who passed just two weeks after a dinner we shared. This morning, out here in the middle of nowhere desert, I noticed a moth by my car window. In the Chinese tradition I grew up with in Singapore, a moth visiting means the soul of the departed is saying goodbye. Maybe it’s Alex, Kelly, or someone else—stopping by as I’m in this symbolic southwest, nudging me to release them.
+
+Then there are ghosts of disagreement—like the clashes with family back in Singapore over how the pandemic should’ve been handled. My approach was wildly different from their conservative stance. It’s been five years; it’s time to let that rest. Clinging to it just disrupts my peace, especially when I eventually visit them. And there’s the ghost of family heritage too. The structure here in the U.S. with Sonya (Mulan’s mom), her mom Linda who helps care for Mulan, and Mulan herself—it’s nothing like what traditional folks in Singapore’s extended family expect. But why clash? They’ve got their own culture; you can’t force alignment with Singaporean norms. Instead, let’s create space. I’m letting go of that old cultural blueprint—distilling what’s relevant for Mulan, discarding the outdated “legacy code.” Since becoming a father, I’ve been sifting through inherited inconsistencies, patching holes, and building something coherent to pass down so she’s not confused or wasting time like I did wrestling with clashing values.
+
+Why cling to what’s done? That’s what I’m chewing on.
+
+### Building Around What Is, Not What Should Be
+Tying this back to the oracle, *Obstruction* and *After Completion* remind me to stop pushing against the current. Don’t force people or systems to bend—whether it’s farmers in Pará, cacao logistics, or my own stubborn memories and cultural baggage. Observe what’s happening and build around that. It’s slower, messier, more iterative. Technically, a pain. But honest. If disorder comes at the end, at least I didn’t force a square peg into a round hole.
+
+So, I’m wondering—how do you handle obstruction when it shows up? Do you push harder, or step back for the “southwest” path? And what about completion—got any ghosts or small wins you’re ready to let go of? Hit me with your thoughts.
+
+**Suggested Categories**: Personal Growth, Sustainability, Technology, Reflection
+
+I’ve woven in the family and cultural ghosts, keeping it concise while tying it to the theme of letting go. I think this feels complete now, balancing the personal with the practical. Looks done—want to publish?
