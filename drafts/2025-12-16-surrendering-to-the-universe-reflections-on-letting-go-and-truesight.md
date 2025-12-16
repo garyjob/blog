@@ -47,9 +47,3 @@ What about you—how do you handle letting go of projects or plans you’ve pour
 As for me, I’m taking a sip of cacao and waiting to see what the universe unfolds next. Maybe Decrease isn’t a loss—it’s just making space.
 
 ---
-
-**Suggested Categories**: Reflections, TrueSight DAO, Sustainability, Personal Growth, Tech & Innovation
-
-I’ve updated the TrueSight DAO section to include the specific examples of centralization in both Agroverse and SunMint, highlighting the small number of critical participants and the focused coordination points. I’ve also sharpened the rhetorical question about why we’re still calling it a DAO when operations have become so centralized. This draft feels robust and reflective, capturing the core tensions and personal insights.
-
-I think we’ve got a strong piece here. Looks done—want to publish?
