@@ -2427,6 +2427,10 @@ function saveDraft(title, content, categories, existingFilename) {
  * @return {Object} Result with success status and URL
  */
 function publishDraft(draftFilename) {
+  // Track execution start time to prevent timeout
+  const executionStartTime = new Date().getTime();
+  const MAX_EXECUTION_TIME = 5 * 60 * 1000; // 5 minutes (Google Apps Script limit is 6 minutes)
+  
   try {
     // Ensure filename has drafts/ prefix
     let draftPath = draftFilename;
@@ -2599,6 +2603,34 @@ function publishDraft(draftFilename) {
     // Default categories if none
     if (categories.length === 0) {
       categories = ['Technology'];
+    }
+    
+    // Update the draft file with merged categories in frontmatter
+    // Reconstruct frontmatter with updated categories
+    const categoriesArrayStr = categories.map(cat => `"${cat}"`).join(', ');
+    const updatedFrontmatter = `---
+title: "${title.replace(/"/g, '\\"')}"
+date: ${dateStr}
+formattedDate: "${formattedDate.replace(/"/g, '\\"')}"
+categories: [${categoriesArrayStr}]
+---`;
+    
+    // Reconstruct the full markdown content with updated frontmatter
+    const updatedDraftContent = updatedFrontmatter + '\n\n' + markdownContent;
+    
+    // Update the draft file in GitHub with merged categories
+    try {
+      const draftSHA = getGitHubFileSHA(draftPath);
+      const draftFiles = [{
+        path: draftPath,
+        content: updatedDraftContent,
+        sha: draftSHA
+      }];
+      commitToGitHub(draftFiles, `Updated draft categories: ${title}`);
+      Logger.log('Updated draft file with merged categories: ' + categories.join(', '));
+    } catch (e) {
+      Logger.log('Warning: Could not update draft file with merged categories: ' + e.message);
+      // Don't fail the publish if draft update fails
     }
     
     // Remove common conversation artifacts (more aggressive patterns)
@@ -3148,7 +3180,29 @@ ${htmlContent}
     
     Logger.log('Post published: ' + JSON.stringify(result));
     
-    // Update category pages (non-blocking - don't wait for completion)
+    // Check if commit was successful
+    if (!result || (result.error && result.error.length > 0)) {
+      throw new Error('Failed to commit post to GitHub: ' + (result ? result.error : 'Unknown error'));
+    }
+    
+    // Prepare success response immediately after successful commit
+    // This ensures the URL is returned to the user even if index regeneration times out
+    const successResponse = {
+      success: true,
+      filename: filename,
+      url: `https://garyteh.com/${filename}`,
+      message: postSHA ? 'Post updated successfully!' : 'Post published successfully!'
+    };
+    
+    // IMPORTANT: Check execution time before doing any additional work
+    // If we're already close to the timeout limit, return immediately
+    const elapsedTime = new Date().getTime() - executionStartTime;
+    if (elapsedTime > MAX_EXECUTION_TIME) {
+      Logger.log('Execution time limit approaching, returning success response immediately');
+      return successResponse;
+    }
+    
+    // Try to update category pages (non-blocking - don't wait for completion)
     try {
       updateCategoryPages(categories, title, filename, dateStr, formattedDate);
     } catch (e) {
@@ -3156,7 +3210,14 @@ ${htmlContent}
       // Don't fail the publish if category pages fail
     }
     
-    // Regenerate index.html (non-blocking - don't fail publish if it times out)
+    // Try to regenerate index.html (non-blocking - don't fail publish if it times out)
+    // Check execution time again before attempting index regeneration
+    const elapsedTimeBeforeIndex = new Date().getTime() - executionStartTime;
+    if (elapsedTimeBeforeIndex > MAX_EXECUTION_TIME - 60000) { // Leave 1 minute buffer
+      Logger.log('Skipping index regeneration - execution time limit approaching (elapsed: ' + Math.round(elapsedTimeBeforeIndex/1000) + 's)');
+      return successResponse;
+    }
+    
     try {
       Logger.log('Regenerating index.html...');
       Logger.log('Starting index regeneration for new post: ' + title);
@@ -3183,12 +3244,8 @@ ${htmlContent}
       // Don't fail the publish if index regeneration fails or times out
     }
     
-    return {
-      success: true,
-      filename: filename,
-      url: `https://garyteh.com/${filename}`,
-      message: postSHA ? 'Post updated successfully!' : 'Post published successfully!'
-    };
+    // Return success response (post is already published at this point)
+    return successResponse;
     
   } catch (e) {
     Logger.log('Publish draft error: ' + e.toString());
