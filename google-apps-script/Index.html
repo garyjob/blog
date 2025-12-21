@@ -1013,6 +1013,7 @@
                         rows="1"
                     ></textarea>
                     <button 
+                        type="button"
                         class="send-btn-inline" 
                         id="sendBtnInline" 
                         title="Send message"
@@ -1105,13 +1106,23 @@
             // Send button (inline inside textarea)
             const sendBtnInline = document.getElementById('sendBtnInline');
             if (sendBtnInline) {
-                sendBtnInline.addEventListener('click', sendMessage);
+                sendBtnInline.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    sendMessage();
+                });
+            } else {
+                console.error('sendBtnInline not found!');
             }
             
             // Legacy send button (hidden, kept for compatibility)
             const sendBtn = document.getElementById('sendBtn');
             if (sendBtn) {
-                sendBtn.addEventListener('click', sendMessage);
+                sendBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    sendMessage();
+                });
             }
             
             // Global speech speed selector
@@ -1546,9 +1557,20 @@
         // Send message to Grok
         function sendMessage() {
             const input = document.getElementById('messageInput');
+            if (!input) {
+                console.error('messageInput not found!');
+                return;
+            }
             const message = input.value.trim();
             
             if (!message) return;
+            
+            // Check if google.script.run is available
+            if (typeof google === 'undefined' || !google.script || !google.script.run) {
+                console.error('google.script.run is not available. This page must be served as a Google Apps Script web app.');
+                showStatus('Error: This page must be accessed through the Google Apps Script web app URL, not opened directly.', 'error');
+                return;
+            }
             
             // Hide published post banner if this is the start of a new conversation
             // Clear any status messages
@@ -1636,6 +1658,9 @@
                 })
                 .callGrok(message, conversationHistory.slice(0, -1)); // Send history without current message
         }
+        
+        // Make sendMessage globally accessible for debugging
+        window.sendMessage = sendMessage;
         
         // Add message to chat
         function addMessage(role, content, messageIndex) {
@@ -1979,32 +2004,6 @@
         function publishDraft() {
             // Check if we're editing an existing draft
             if (editingPostFilename) {
-                // Extract title from draft filename or conversation to show URL immediately
-                let title = '';
-                let dateStr = '';
-                
-                // Try to extract title from conversation
-                for (let msg of conversationHistory) {
-                    if (msg.role === 'assistant') {
-                        const titleMatch = msg.content.match(/^#\s+(.+?)(?:\n|$)/m);
-                        if (titleMatch) {
-                            title = titleMatch[1].trim();
-                            break;
-                        }
-                    }
-                }
-                
-                // If no title found, use a placeholder
-                if (!title) {
-                    title = 'Post'; // Will be updated when backend responds
-                }
-                
-                // Generate and show URL immediately
-                const previewURL = generatePostURL(title, dateStr);
-                if (previewURL) {
-                    showPublishedLink(previewURL);
-                }
-                
                 // Publish the existing draft
                 const publishBtn = document.getElementById('publishBtn');
                 publishBtn.disabled = true;
@@ -2014,7 +2013,7 @@
                     .withSuccessHandler(function(result) {
                         if (result.success) {
                             showStatus('✅ Post published successfully!', 'success');
-                            // Update published link with actual URL from backend (should match, but just in case)
+                            // Show published link
                             showPublishedLink(result.url);
                             publishBtn.disabled = false;
                             publishBtn.innerHTML = '🚀 Publish';
@@ -2024,14 +2023,12 @@
                             // Don't clear chat - allow user to continue editing
                         } else {
                             showStatus('❌ Error: ' + result.error, 'error');
-                            hidePublishedLink(); // Hide link on error
                             publishBtn.disabled = false;
                             publishBtn.innerHTML = '🚀 Publish';
                         }
                     })
                     .withFailureHandler(function(error) {
                         showStatus('❌ Error: ' + error.message, 'error');
-                        hidePublishedLink(); // Hide link on error
                         publishBtn.disabled = false;
                         publishBtn.innerHTML = '🚀 Publish';
                     })
@@ -2090,12 +2087,6 @@
                     categories = ['Technology'];
                 }
                 
-                // Generate and show URL immediately (before backend call)
-                const previewURL = generatePostURL(title, null); // null = use current date
-                if (previewURL) {
-                    showPublishedLink(previewURL);
-                }
-                
                 // Save draft first, then publish
                 const publishBtn = document.getElementById('publishBtn');
                 publishBtn.disabled = true;
@@ -2109,7 +2100,7 @@
                                 .withSuccessHandler(function(publishResult) {
                                     if (publishResult.success) {
                                         showStatus('✅ Post published successfully!', 'success');
-                                        // Update published link with actual URL from backend (should match, but just in case)
+                                        // Show published link
                                         showPublishedLink(publishResult.url);
                                         publishBtn.disabled = false;
                                         publishBtn.innerHTML = '🚀 Publish';
@@ -2119,28 +2110,24 @@
                                         // Don't clear chat - allow user to continue editing
                                     } else {
                                         showStatus('❌ Error publishing: ' + publishResult.error, 'error');
-                                        hidePublishedLink(); // Hide link on error
                                         publishBtn.disabled = false;
                                         publishBtn.innerHTML = '🚀 Publish';
                                     }
                                 })
                                 .withFailureHandler(function(error) {
                                     showStatus('❌ Error: ' + error.message, 'error');
-                                    hidePublishedLink(); // Hide link on error
                                     publishBtn.disabled = false;
                                     publishBtn.innerHTML = '🚀 Publish';
                                 })
                                 .publishDraft(saveResult.filename);
                         } else {
                             showStatus('❌ Error saving draft: ' + saveResult.error, 'error');
-                            hidePublishedLink(); // Hide link on error
                             publishBtn.disabled = false;
                             publishBtn.innerHTML = '🚀 Publish';
                         }
                     })
                     .withFailureHandler(function(error) {
                         showStatus('❌ Error: ' + error.message, 'error');
-                        hidePublishedLink(); // Hide link on error
                         publishBtn.disabled = false;
                         publishBtn.innerHTML = '🚀 Publish';
                     })
@@ -2356,24 +2343,6 @@
                 statusDiv.textContent = '';
                 statusDiv.className = '';
             }
-        }
-        
-        // Generate URL from title and date (matches backend logic)
-        function generatePostURL(title, dateStr) {
-            if (!title) return null;
-            if (!dateStr) {
-                // Use current date if not provided
-                const date = new Date();
-                dateStr = date.getFullYear() + '-' + 
-                         String(date.getMonth() + 1).padStart(2, '0') + '-' + 
-                         String(date.getDate()).padStart(2, '0');
-            }
-            // Generate slug from title (matches backend logic)
-            const slug = title.toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/^-|-$/g, '');
-            const filename = `${dateStr}-${slug}.html`;
-            return `https://garyteh.com/${filename}`;
         }
         
         // Show published link
@@ -2625,4 +2594,3 @@
     </script>
 </body>
 </html>
-

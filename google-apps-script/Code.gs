@@ -2122,18 +2122,10 @@ function loadExistingDraft(filename) {
           .trim();
       }
       
-      // Extract categories from category-tag links or spans
-      // Match both <a> and <span> tags with class="category-tag" for backward compatibility
-      const categoryMatches = draftContent.matchAll(/<a[^>]*class="category-tag"[^>]*>([^<]+)<\/a>/gi);
+      // Extract categories from category-tag spans
+      const categoryMatches = draftContent.matchAll(/<span class="category-tag">([^<]+)<\/span>/g);
       for (const match of categoryMatches) {
         categories.push(match[1].trim());
-      }
-      // Also check for <span> tags (legacy format) if no <a> tags found
-      if (categories.length === 0) {
-        const spanMatches = draftContent.matchAll(/<span class="category-tag">([^<]+)<\/span>/gi);
-        for (const match of spanMatches) {
-          categories.push(match[1].trim());
-        }
       }
       
       // Extract date from post-date span or filename
@@ -2256,19 +2248,11 @@ function loadExistingPost(filename) {
         .trim();
     }
     
-    // Extract categories from category-tag links or spans
-    // Match both <a> and <span> tags with class="category-tag" for backward compatibility
+    // Extract categories from category-tag spans
     const categories = [];
-    const categoryMatches = postHTML.matchAll(/<a[^>]*class="category-tag"[^>]*>([^<]+)<\/a>/gi);
+    const categoryMatches = postHTML.matchAll(/<span class="category-tag">([^<]+)<\/span>/g);
     for (const match of categoryMatches) {
       categories.push(match[1].trim());
-    }
-    // Also check for <span> tags (legacy format) if no <a> tags found
-    if (categories.length === 0) {
-      const spanMatches = postHTML.matchAll(/<span class="category-tag">([^<]+)<\/span>/gi);
-      for (const match of spanMatches) {
-        categories.push(match[1].trim());
-      }
     }
     
     // Extract date from post-date span or filename
@@ -2427,10 +2411,6 @@ function saveDraft(title, content, categories, existingFilename) {
  * @return {Object} Result with success status and URL
  */
 function publishDraft(draftFilename) {
-  // Track execution start time to prevent timeout
-  const executionStartTime = new Date().getTime();
-  const MAX_EXECUTION_TIME = 5 * 60 * 1000; // 5 minutes (Google Apps Script limit is 6 minutes)
-  
   try {
     // Ensure filename has drafts/ prefix
     let draftPath = draftFilename;
@@ -2514,8 +2494,16 @@ function publishDraft(draftFilename) {
       formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     }
     
-    // Extract categories from "Suggested Categories" line if present (before removing it)
+    // Default categories if none
+    if (categories.length === 0) {
+      categories = ['Technology'];
+    }
+    
+    // Clean markdown content: remove metadata and conversation artifacts
+    // Remove everything from "Suggested Categories" or "Categories:" onwards (case-insensitive, multiline)
     const contentLower = markdownContent.toLowerCase();
+    
+    // Check for both "Suggested Categories" and "Categories:" (as metadata, not in frontmatter)
     let categoriesIndex = contentLower.indexOf('suggested categories');
     if (categoriesIndex === -1) {
       // Also check for standalone "Categories:" (not in frontmatter, which would be "categories:")
@@ -2528,109 +2516,14 @@ function publishDraft(draftFilename) {
     }
     
     if (categoriesIndex !== -1) {
-      // Extract the line containing the categories
+      // Find the start of the line containing the categories metadata
       let lineStart = categoriesIndex;
       while (lineStart > 0 && markdownContent[lineStart - 1] !== '\n') {
         lineStart--;
       }
-      let lineEnd = categoriesIndex;
-      while (lineEnd < markdownContent.length && markdownContent[lineEnd] !== '\n') {
-        lineEnd++;
-      }
-      const categoriesLine = markdownContent.substring(lineStart, lineEnd);
-      
-      // Extract categories from the line
-      // Pattern examples:
-      //   "**Suggested Categories:** Category1, Category2, Category3"
-      //   "*Suggested Categories:* Category1, Category2"
-      //   "Categories: Category1, Category2"
-      // Handle markdown bold formatting (**text** or *text*)
-      
-      // Try multiple patterns to handle different markdown formats
-      let categoriesText = null;
-      
-      // Pattern 1: **Suggested Categories:** followed by categories
-      let match = categoriesLine.match(/\*{1,2}\s*Suggested Categories:\s*\*{1,2}\s*(.+)$/i);
-      if (match && match[1]) {
-        categoriesText = match[1].trim();
-      }
-      
-      // Pattern 2: Suggested Categories: (without bold formatting)
-      if (!categoriesText) {
-        match = categoriesLine.match(/Suggested Categories:\s*(.+)$/i);
-        if (match && match[1]) {
-          categoriesText = match[1].trim();
-        }
-      }
-      
-      // Pattern 3: Categories: (without "Suggested")
-      if (!categoriesText) {
-        match = categoriesLine.match(/(?:\*{1,2})?\s*Categories:\s*(?:\*{1,2})?\s*(.+)$/i);
-        if (match && match[1]) {
-          categoriesText = match[1].trim();
-        }
-      }
-      
-      if (categoriesText) {
-        // Remove any trailing markdown formatting
-        categoriesText = categoriesText.replace(/\*+$/, '').trim();
-        
-        const suggestedCategories = categoriesText
-          .split(',')
-          .map(cat => cat.trim())
-          .filter(cat => cat.length > 0);
-        
-        // Merge with existing categories (avoid duplicates, case-insensitive)
-        const existingCategoriesLower = categories.map(c => c.toLowerCase());
-        suggestedCategories.forEach(cat => {
-          if (!existingCategoriesLower.includes(cat.toLowerCase())) {
-            categories.push(cat);
-          }
-        });
-        
-        Logger.log('Extracted ' + suggestedCategories.length + ' categories from "Suggested Categories" line: ' + suggestedCategories.join(', '));
-        Logger.log('Final categories array: ' + categories.join(', '));
-      } else {
-        Logger.log('Warning: Could not extract categories from line: ' + categoriesLine);
-        Logger.log('Line length: ' + categoriesLine.length);
-      }
-      
       // Remove everything from that line onwards
       markdownContent = markdownContent.substring(0, lineStart).trim();
       Logger.log('Removed categories metadata and everything after it');
-    }
-    
-    // Default categories if none
-    if (categories.length === 0) {
-      categories = ['Technology'];
-    }
-    
-    // Update the draft file with merged categories in frontmatter
-    // Reconstruct frontmatter with updated categories
-    const categoriesArrayStr = categories.map(cat => `"${cat}"`).join(', ');
-    const updatedFrontmatter = `---
-title: "${title.replace(/"/g, '\\"')}"
-date: ${dateStr}
-formattedDate: "${formattedDate.replace(/"/g, '\\"')}"
-categories: [${categoriesArrayStr}]
----`;
-    
-    // Reconstruct the full markdown content with updated frontmatter
-    const updatedDraftContent = updatedFrontmatter + '\n\n' + markdownContent;
-    
-    // Update the draft file in GitHub with merged categories
-    try {
-      const draftSHA = getGitHubFileSHA(draftPath);
-      const draftFiles = [{
-        path: draftPath,
-        content: updatedDraftContent,
-        sha: draftSHA
-      }];
-      commitToGitHub(draftFiles, `Updated draft categories: ${title}`);
-      Logger.log('Updated draft file with merged categories: ' + categories.join(', '));
-    } catch (e) {
-      Logger.log('Warning: Could not update draft file with merged categories: ' + e.message);
-      // Don't fail the publish if draft update fails
     }
     
     // Remove common conversation artifacts (more aggressive patterns)
@@ -3180,29 +3073,7 @@ ${htmlContent}
     
     Logger.log('Post published: ' + JSON.stringify(result));
     
-    // Check if commit was successful
-    if (!result || (result.error && result.error.length > 0)) {
-      throw new Error('Failed to commit post to GitHub: ' + (result ? result.error : 'Unknown error'));
-    }
-    
-    // Prepare success response immediately after successful commit
-    // This ensures the URL is returned to the user even if index regeneration times out
-    const successResponse = {
-      success: true,
-      filename: filename,
-      url: `https://garyteh.com/${filename}`,
-      message: postSHA ? 'Post updated successfully!' : 'Post published successfully!'
-    };
-    
-    // IMPORTANT: Check execution time before doing any additional work
-    // If we're already close to the timeout limit, return immediately
-    const elapsedTime = new Date().getTime() - executionStartTime;
-    if (elapsedTime > MAX_EXECUTION_TIME) {
-      Logger.log('Execution time limit approaching, returning success response immediately');
-      return successResponse;
-    }
-    
-    // Try to update category pages (non-blocking - don't wait for completion)
+    // Update category pages (non-blocking - don't wait for completion)
     try {
       updateCategoryPages(categories, title, filename, dateStr, formattedDate);
     } catch (e) {
@@ -3210,42 +3081,16 @@ ${htmlContent}
       // Don't fail the publish if category pages fail
     }
     
-    // Try to regenerate index.html (non-blocking - don't fail publish if it times out)
-    // Check execution time again before attempting index regeneration
-    const elapsedTimeBeforeIndex = new Date().getTime() - executionStartTime;
-    if (elapsedTimeBeforeIndex > MAX_EXECUTION_TIME - 60000) { // Leave 1 minute buffer
-      Logger.log('Skipping index regeneration - execution time limit approaching (elapsed: ' + Math.round(elapsedTimeBeforeIndex/1000) + 's)');
-      return successResponse;
-    }
-    
-    try {
-      Logger.log('Regenerating index.html...');
-      Logger.log('Starting index regeneration for new post: ' + title);
-      const regeneratedIndex = regenerateIndexHTML();
-      if (!regeneratedIndex) {
-        throw new Error('regenerateIndexHTML() returned null or empty');
-      }
-      Logger.log('Index HTML generated successfully, length: ' + regeneratedIndex.length);
-      const indexSHA = getGitHubFileSHA('index.html');
-      Logger.log('Got index.html SHA: ' + (indexSHA || 'null (new file)'));
-      const indexFiles = [{
-        path: 'index.html',
-        content: regeneratedIndex,
-        sha: indexSHA
-      }];
-      const commitResult = commitToGitHub(indexFiles, 'Auto-updated index.html with new post: ' + title);
-      Logger.log('Index.html commit result: ' + JSON.stringify(commitResult));
-      Logger.log('Index.html updated successfully');
-    } catch (e) {
-      Logger.log('ERROR: Could not update index.html: ' + e.toString());
-      Logger.log('Error stack: ' + (e.stack || 'no stack trace'));
-      Logger.log('You can manually regenerate index.html by calling regenerateIndex() function');
-      Logger.log('Or run: python3 restructure_index.py');
-      // Don't fail the publish if index regeneration fails or times out
-    }
-    
-    // Return success response (post is already published at this point)
-    return successResponse;
+    // Return immediately - index regeneration is slow and can cause timeouts
+    // Index can be regenerated separately via regenerateIndex() function if needed
+    // Note: Index regeneration removed from publish flow to prevent timeouts
+    // To regenerate index.html, call regenerateIndex() separately
+    return {
+      success: true,
+      filename: filename,
+      url: `https://garyteh.com/${filename}`,
+      message: postSHA ? 'Post updated successfully!' : 'Post published successfully!'
+    };
     
   } catch (e) {
     Logger.log('Publish draft error: ' + e.toString());
