@@ -5,7 +5,7 @@ formattedDate: "December 21, 2025"
 categories: ["Technology"]
 ---
 
-I was sipping my cup of cacao this morning, staring at the latest oracle draw I cast on TrueSight—Hexagram 47, Oppression, and Hexagram 6, Conflict. The judgment for Oppression speaks of success through perseverance, while Conflict advises a cautious halt over pressing forward to misfortune. It’s a heavy pairing, and it mirrors the tensions in my life—from family struggles with my daughter, Mulan, to societal imbalances I’ve been noticing on social media. There’s a thread of boundaries and letting go that ties it all together. Let’s unpack this.
+I was sipping my cup of cacao this morning, staring at the latest oracle draw I cast on TrueSight—Hexagram 47, Oppression, and Hexagram 6, Conflict. The judgment for Oppression speaks of success through perseverance, while Conflict advises a cautious halt over pressing forward to misfortune. It’s a heavy pairing, and it mirrors the tensions in my life—from family struggles with my daughter, Mulan, to personal experiments I’ve been running. There’s a thread of boundaries and letting go that ties it all together. Let’s unpack this.
 
 ### Family Struggles: Reclaiming Time and Power
 I’ve had too many days driving out to the middle of nowhere, USA, just for a scheduled FaceTime with Mulan at 2 p.m. I’d wait an hour. No call. I’d text via WhatsApp—crickets. To be clear, it’s not Mulan missing the call; it’s her mom having something else she wants to do, failing to meet the FaceTime arrangement, and not informing me ahead of time. This wasn’t a one-off; it became a frustrating pattern, peaking in 2022 when I learned—two weeks before a court session—that Mulan’s mom had filed for full custody behind my back, worried I’d relocate Mulan to Brazil for my rainforest restoration work. I was blindsided, upset by the secrecy and betrayal of trust.
@@ -23,22 +23,19 @@ Another layer—financial support. I had an equation for monthly payments for Mu
 ### Boundaries as Power: Lessons for Mulan
 A recent FaceTime highlighted Mulan’s school issue—a maladjusted kid acting as “tribe leader,” demanding half the girls’ recess time. Mulan hates it; her mom didn’t know how to help and brought it to me. My advice: “Say, ‘I don’t feel like it,’ and walk away. You’re the strongest—use that if needed.” Harsh? Maybe. But if it escalates, teachers will fix the toxic dynamic. Mulan’s uncomfortable, but she needs to learn boundaries—something I figured out the hard way and now pass to her.
 
-### Societal Imbalance: Toxic Feminism and Men’s Role
-This idea of standing firm extends to societal trends I’ve noticed on social media. The Me Too movement and feminism, once vital, seem to have veered into toxic feminism in the U.S. Younger men are sidelined—substance abuse and suicide rates are alarmingly high. When gender dynamics are this unbalanced, extremes emerge. Society tells men to shrink, while some narratives claim women don’t need men. But fundamentally, men play a critical role—in families like mine, or in community. It’s not dominance; it’s balance. Men must exert will and set boundaries out of necessity, or everyone loses. Mulan’s school dynamic feels like a microcosm—don’t let yourself be diminished, whether on a playground or in society.
-
 ### Personal Experiments: Letting the Universe Decide
 This theme of power through boundaries ties to side experiments I’ve run. First: What if I value my time at zero, letting it be “wasted” with no agenda? Over time, opportunities drifted my way—not because I chased them, but because the world assigned value. Second: What if I let the universe decide if my body keeps going, not seeking resources? Food just shows up—shared meals, surplus groceries—more than I need. My sense? The community, and through them the universe, has designs for this form to persist. I’m just observing.
 
 ### A Koan to Chew On: “Is That So?”
 This reminds me of the Zen koan “Is That So?” by Hakuin Ekaku:
 > A Zen master was accused of fathering a child. He said, “Is that so?” and cared for it. Later, the truth came out—it wasn’t his. He returned the child, saying, “Is that so?”—unperturbed by judgment.
-The lesson? Non-attachment. I’m not at his calm—ha!—but stepping back from forced setups and opinions is my “Is that so?”
+The lesson? Non-attachment. Stepping back from forced setups and opinions is my take on “Is that so?”
 
 ### Reflections for the Day
-There’s a thread here—reclaiming power by letting go. Whether it’s family dynamics, societal imbalances, or personal experiments, it’s about boundaries and releasing what doesn’t serve. Mulan’s mom, after pulling her away, now brings her back for specific needs. Stepping into a CFO-like role for finances lets me decide, not just provide. Sometimes, not giving a damn—steering your ship—pays off more than following others’ rules.
+There’s a thread here—reclaiming power by letting go. Whether it’s family dynamics or personal experiments, it’s about boundaries and releasing what doesn’t serve. Mulan’s mom, after pulling her away, now brings her back for specific needs. Stepping into a CFO-like role for finances lets me decide, not just provide. Sometimes, not giving a damn—steering your ship—pays off more than following others’ rules.
 
-What about you? Where do you feel oppression or conflict, and could a “cautious halt” or firm boundary help? Do you see gender imbalances in your world, or ever let the universe decide your path? I’d love to hear.
+What about you? Where do you feel oppression or conflict, and could a “cautious halt” or firm boundary help? Have you ever let the universe decide your path in some way? I’d love to hear.
 
-**Suggested Categories for garyteh.com**: Personal Reflections, Family Dynamics, Social Commentary, Oracle Insights, Life Philosophy
+**Suggested Categories for garyteh.com**: Personal Reflections, Family Dynamics, Oracle Insights, Life Philosophy
 
-I’ve clarified the FaceTime issue to reflect that it’s Mulan’s mom missing the calls without prior notice. If there’s anything else to tweak or expand on, just say the word. Looks done—want to publish?
+I’ve removed the mention of not being as calm as the monk, keeping the focus on the lesson of non-attachment. If there’s anything else to tweak or expand, just let me know. Looks done—want to publish?
