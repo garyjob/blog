@@ -1033,12 +1033,6 @@
                     📂 Load Draft
                 </button>
                 <button 
-                    class="btn btn-primary" 
-                    id="saveDraftBtn"
-                >
-                    <span id="saveDraftBtnText">Save Draft</span>
-                </button>
-                <button 
                     class="btn btn-success" 
                     id="publishBtn"
                     style="background: var(--success);"
@@ -1078,10 +1072,6 @@
             attachEventListeners();
             testImageUploadFunction();
             
-            // Enable save draft button if we have conversation history
-            if (conversationHistory.length >= 2) {
-                document.getElementById('saveDraftBtn').disabled = false;
-            }
         };
         
         // Test if image upload function is accessible
@@ -1206,14 +1196,6 @@
                 loadDraftBtn.addEventListener('click', showLoadDraft);
             }
             
-            // Save draft button
-            const saveDraftBtn = document.getElementById('saveDraftBtn');
-            if (saveDraftBtn) {
-                saveDraftBtn.addEventListener('click', function() {
-                    saveDraft();
-                });
-            }
-            
             // Publish button
             const publishBtn = document.getElementById('publishBtn');
             if (publishBtn) {
@@ -1257,20 +1239,6 @@
                     const savedFilename = localStorage.getItem('blogDraftEditingFilename');
                     if (savedFilename) {
                         editingPostFilename = savedFilename;
-                        document.getElementById('saveDraftBtnText').textContent = 'Update Draft';
-                        document.getElementById('saveDraftBtn').classList.add('editing-indicator');
-                        if (!document.getElementById('saveDraftBtn').querySelector('.editing-indicator')) {
-                            const indicator = document.createElement('span');
-                            indicator.className = 'editing-indicator';
-                            indicator.textContent = 'Editing';
-                            indicator.style.marginLeft = '10px';
-                            document.getElementById('saveDraftBtn').appendChild(indicator);
-                        }
-                    }
-                    
-                    // Enable save draft button if we have conversation
-                    if (conversationHistory.length >= 2) {
-                        document.getElementById('saveDraftBtn').disabled = false;
                     }
                 } catch (e) {
                     console.error('Error loading conversation:', e);
@@ -1639,10 +1607,6 @@
                         sendBtn.textContent = 'Send';
                     }
                     
-                    // Enable save draft button if we have at least one exchange
-                    if (conversationHistory.length >= 2) {
-                        document.getElementById('saveDraftBtn').disabled = false;
-                    }
                 })
                 .withFailureHandler(function(error) {
                     removeMessage(loadingId);
@@ -1864,11 +1828,6 @@
                 }
             });
             
-            // Update save draft button state
-            if (conversationHistory.length < 2) {
-                document.getElementById('saveDraftBtn').disabled = true;
-            }
-            
             // Save updated conversation
             saveConversation();
             
@@ -1888,119 +1847,7 @@
             }
         }
         
-        // Save draft
-        function saveDraft() {
-            // Check if we have enough conversation to save
-            if (conversationHistory.length < 2) {
-                showStatus('Have a conversation with Grok first!', 'error');
-                return;
-            }
-            
-            // Extract title and content from conversation
-            // Look for title in assistant messages
-            let title = '';
-            let content = '';
-            let categories = [];
-            
-            // Find title (usually in first or second assistant message)
-            for (let msg of conversationHistory) {
-                if (msg.role === 'assistant') {
-                    // Try to extract title (look for "Title:" or similar)
-                    const titleMatch = msg.content.match(/(?:title|heading):\s*(.+?)(?:\n|$)/i);
-                    if (titleMatch) {
-                        title = titleMatch[1].trim();
-                    }
-                    
-                    // Try to extract categories
-                    const catMatch = msg.content.match(/(?:categories?|tags?):\s*(.+?)(?:\n|$)/i);
-                    if (catMatch) {
-                        categories = catMatch[1].split(',').map(c => c.trim());
-                    }
-                }
-            }
-            
-            // If no title found, use first user message or generate
-            if (!title) {
-                const firstUserMsg = conversationHistory.find(m => m.role === 'user');
-                title = firstUserMsg ? firstUserMsg.content.substring(0, 60) : 'New Draft';
-            }
-            
-            // Build content from all messages
-            content = conversationHistory
-                .filter(msg => msg.role === 'assistant')
-                .map(msg => msg.content)
-                .join('\n\n');
-            
-            // If no categories, try to extract from content
-            if (categories.length === 0) {
-                // Simple keyword extraction (can be improved)
-                const commonCategories = ['Technology', 'AI', 'Startups', 'Investing', 'Psychology'];
-                // For now, use a default
-                categories = ['Technology'];
-            }
-            
-            // Disable button
-            const saveDraftBtn = document.getElementById('saveDraftBtn');
-            saveDraftBtn.disabled = true;
-            const loadingDiv2 = document.createElement('div');
-            loadingDiv2.className = 'loading';
-            saveDraftBtn.innerHTML = '';
-            saveDraftBtn.appendChild(loadingDiv2);
-            const savingText = document.createTextNode(' Saving...');
-            saveDraftBtn.appendChild(savingText);
-            
-            // Call server (pass existing filename if editing)
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    if (result.success) {
-                        const action = result.isUpdate ? 'Updated' : 'Saved';
-                        
-                        // Show success message
-                        showStatus('✅ Draft ' + action.toLowerCase() + ' successfully!', 'success');
-                        setTimeout(() => showStatus('', ''), 3000);
-                        
-                        // Clear editing state if it was an update
-                        if (result.isUpdate) {
-                            editingPostFilename = null;
-                            document.getElementById('saveDraftBtnText').textContent = 'Save Draft';
-                            document.getElementById('saveDraftBtn').classList.remove('editing-indicator');
-                            const indicator = document.getElementById('saveDraftBtn').querySelector('.editing-indicator');
-                            if (indicator) indicator.remove();
-                        }
-                        
-                        // Clear conversation after successful save (only for new drafts)
-                        if (!result.isUpdate) {
-                            setTimeout(() => {
-                                clearChat();
-                            }, 2000);
-                        } else {
-                            // For updates, just re-enable the button
-                            saveDraftBtn.disabled = false;
-                            saveDraftBtn.innerHTML = '<span id="saveDraftBtnText">Update Draft</span>';
-                            // Keep editing indicator
-                            if (!saveDraftBtn.querySelector('.editing-indicator')) {
-                                const indicator = document.createElement('span');
-                                indicator.className = 'editing-indicator';
-                                indicator.textContent = 'Editing';
-                                indicator.style.marginLeft = '10px';
-                                saveDraftBtn.appendChild(indicator);
-                            }
-                        }
-                    } else {
-                        showStatus('❌ Error: ' + result.error, 'error');
-                        saveDraftBtn.disabled = false;
-                        saveDraftBtn.innerHTML = '<span id="saveDraftBtnText">' + (editingPostFilename ? 'Update Draft' : 'Save Draft') + '</span>';
-                    }
-                })
-                .withFailureHandler(function(error) {
-                    showStatus('❌ Error: ' + error.message, 'error');
-                    saveDraftBtn.disabled = false;
-                    saveDraftBtn.innerHTML = '<span id="saveDraftBtnText">' + (editingPostFilename ? 'Update Draft' : 'Save Draft') + '</span>';
-                })
-                .saveDraft(title, content, categories, editingPostFilename);
-        }
-        
-        // Publish draft as blog post
+        // Publish draft as blog post (saves draft first, then publishes)
         function publishDraft() {
             // Check if we're editing an existing draft
             if (editingPostFilename) {
@@ -2272,26 +2119,12 @@
                         // Track that we're editing
                         editingPostFilename = result.filename;
                         
-                        // Update UI
-                        document.getElementById('saveDraftBtnText').textContent = 'Update Draft';
-                        document.getElementById('saveDraftBtn').classList.add('editing-indicator');
-                        if (!document.getElementById('saveDraftBtn').querySelector('.editing-indicator')) {
-                            const indicator = document.createElement('span');
-                            indicator.className = 'editing-indicator';
-                            indicator.textContent = 'Editing';
-                            indicator.style.marginLeft = '10px';
-                            document.getElementById('saveDraftBtn').appendChild(indicator);
-                        }
-                        
                         // Render conversation
                         renderConversation();
                         saveConversation();
                         
                         // Hide load section
                         cancelLoadPost();
-                        
-                        // Enable save draft button
-                        document.getElementById('saveDraftBtn').disabled = false;
                         
                         // Show published link if draft has been published
                         if (result.publishedUrl) {
@@ -2320,14 +2153,9 @@
             if (confirm('Clear conversation?')) {
                 conversationHistory = [];
                 editingPostFilename = null;
-                document.getElementById('saveDraftBtnText').textContent = 'Save Draft';
-                document.getElementById('saveDraftBtn').classList.remove('editing-indicator');
-                const indicator = document.getElementById('saveDraftBtn').querySelector('.editing-indicator');
-                if (indicator) indicator.remove();
                 localStorage.removeItem('blogDraftEditingFilename');
                 saveConversation();
                 renderConversation();
-                document.getElementById('saveDraftBtn').disabled = true;
                 hidePublishedLink(); // Hide published link when clearing
                 showStatus('', '');
             }

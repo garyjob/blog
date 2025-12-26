@@ -2454,12 +2454,22 @@ function publishDraft(draftFilename) {
           formattedDate = formattedDateMatch[1];
         }
         
-        const categoriesMatch = frontmatter.match(/^categories:\s*\[([^\]]+)\]/m);
+        // Parse categories - handle both single-line and multi-line arrays
+        // Pattern 1: categories: ["cat1", "cat2", "cat3"]
+        // Pattern 2: categories: ["cat1",\n  "cat2",\n  "cat3"]
+        const categoriesMatch = frontmatter.match(/^categories:\s*\[([^\]]+)\]/ms);
         if (categoriesMatch) {
-          const catArray = categoriesMatch[1].match(/"([^"]+)"/g);
+          const categoriesStr = categoriesMatch[1];
+          // Match all quoted strings (handles special characters like **)
+          const catArray = categoriesStr.match(/"([^"]+)"/g);
           if (catArray) {
             categories = catArray.map(c => c.replace(/"/g, '').trim());
+            Logger.log('Parsed ' + categories.length + ' categories: ' + categories.join(', '));
+          } else {
+            Logger.log('Warning: Could not parse categories from: ' + categoriesStr);
           }
+        } else {
+          Logger.log('Warning: No categories found in frontmatter');
         }
       }
     } else {
@@ -2467,12 +2477,12 @@ function publishDraft(draftFilename) {
     }
     
     // If no title in frontmatter, try to extract from content (look for # Title)
+    // But keep the H1 in content if it exists - it's part of the post structure
     if (!title) {
       const titleMatch = markdownContent.match(/^#\s+(.+?)(?:\n|$)/m);
       if (titleMatch) {
         title = titleMatch[1].trim();
-        // Remove title from content
-        markdownContent = markdownContent.replace(/^#\s+.+?\n\n?/m, '').trim();
+        // Don't remove title from content - keep it as H1 in the post
       }
     }
     
@@ -2494,27 +2504,90 @@ function publishDraft(draftFilename) {
       formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     }
     
-    // Default categories if none
-    if (categories.length === 0) {
-      categories = ['Technology'];
-    }
-    
     // Clean markdown content: remove metadata and conversation artifacts
-    // Remove everything from "Suggested Categories" or "Categories:" onwards (case-insensitive, multiline)
+    // BUT FIRST: Extract "Suggested Categories" from content if present (overrides frontmatter)
     const contentLower = markdownContent.toLowerCase();
     
     // Check for both "Suggested Categories" and "Categories:" (as metadata, not in frontmatter)
     let categoriesIndex = contentLower.indexOf('suggested categories');
-    if (categoriesIndex === -1) {
+    let suggestedCategories = [];
+    
+    if (categoriesIndex !== -1) {
+      // Extract suggested categories from content
+      // Pattern: **Suggested Categories**: cat1, cat2, cat3
+      // Or: Suggested Categories: cat1, cat2, cat3
+      // Match from the start of "suggested categories" to end of line or next paragraph
+      const lineStart = categoriesIndex;
+      const restOfContent = markdownContent.substring(lineStart);
+      
+      // Try multiple patterns to extract categories
+      // Pattern 1: **Suggested Categories**: cat1, cat2, cat3
+      // Pattern 2: Suggested Categories: cat1, cat2, cat3
+      // Pattern 3: **Suggested Categories**: (with ** prefix before "Suggested")
+      let categoriesStr = '';
+      // First try with ** prefix (most common format)
+      const pattern1 = restOfContent.match(/\*\*\s*[Ss]uggested\s+[Cc]ategories\s*:?\s*([^\n]+)/i);
+      if (pattern1) {
+        categoriesStr = pattern1[1].trim();
+      } else {
+        // Try with single * or no prefix
+        const pattern2 = restOfContent.match(/[*]?\s*[Ss]uggested\s+[Cc]ategories\s*:?\s*([^\n]+)/i);
+        if (pattern2) {
+          categoriesStr = pattern2[1].trim();
+        } else {
+          // Try without any prefix
+          const pattern3 = restOfContent.match(/[Ss]uggested\s+[Cc]ategories\s*:?\s*([^\n]+)/i);
+          if (pattern3) {
+            categoriesStr = pattern3[1].trim();
+          }
+        }
+      }
+      
+      if (categoriesStr) {
+        // Remove any trailing text that might be on the same line (like "This feels like a solid")
+        // Take only up to the first newline or end of string
+        categoriesStr = categoriesStr.split(/\n/)[0].trim();
+        // Remove any trailing punctuation or extra text
+        categoriesStr = categoriesStr.replace(/\s+This feels.*$/i, '').trim();
+        
+        Logger.log('Extracted categories string: "' + categoriesStr + '"');
+        
+        // Split by comma and clean up
+        suggestedCategories = categoriesStr.split(',').map(c => c.trim()).filter(c => c.length > 0);
+        Logger.log('Found ' + suggestedCategories.length + ' suggested categories in content: ' + suggestedCategories.join(', '));
+        
+        // Use suggested categories if they exist (they override frontmatter)
+        if (suggestedCategories.length > 0) {
+          categories = suggestedCategories;
+          Logger.log('Using suggested categories from content instead of frontmatter');
+        }
+      } else {
+        Logger.log('Warning: Found "suggested categories" text but could not parse categories from: ' + restOfContent.substring(0, 200));
+        Logger.log('Full restOfContent: ' + restOfContent.substring(0, 500));
+      }
+    } else {
       // Also check for standalone "Categories:" (not in frontmatter, which would be "categories:")
       // Look for "Categories:" at the start of a line or after a newline
       const categoriesRegex = /(?:\n|^)\s*Categories:\s*/i;
       const match = markdownContent.search(categoriesRegex);
       if (match !== -1) {
         categoriesIndex = match;
+        // Extract categories from this line
+        const categoriesLine = markdownContent.substring(match);
+        const categoriesMatch = categoriesLine.match(/Categories:\s*([^\n]+)/i);
+        if (categoriesMatch) {
+          let categoriesStr = categoriesMatch[1].trim();
+          categoriesStr = categoriesStr.split(/\n/)[0].trim();
+          suggestedCategories = categoriesStr.split(',').map(c => c.trim()).filter(c => c.length > 0);
+          if (suggestedCategories.length > 0) {
+            categories = suggestedCategories;
+            Logger.log('Using categories from content: ' + categories.join(', '));
+          }
+        }
       }
     }
     
+    // Remove "Suggested Categories" line from content if found
     if (categoriesIndex !== -1) {
       // Find the start of the line containing the categories metadata
       let lineStart = categoriesIndex;
@@ -2524,6 +2597,20 @@ function publishDraft(draftFilename) {
       // Remove everything from that line onwards
       markdownContent = markdownContent.substring(0, lineStart).trim();
       Logger.log('Removed categories metadata and everything after it');
+    }
+    
+    // Final check: If we found suggested categories, use them (they override frontmatter)
+    if (suggestedCategories.length > 0) {
+      categories = suggestedCategories;
+      Logger.log('Final categories (from suggested): ' + categories.join(', '));
+    } else {
+      Logger.log('Final categories (from frontmatter): ' + categories.join(', '));
+    }
+    
+    // Default categories if none found (after checking all sources)
+    if (categories.length === 0) {
+      categories = ['Technology'];
+      Logger.log('No categories found, using default: Technology');
     }
     
     // Remove common conversation artifacts (more aggressive patterns)
@@ -3081,15 +3168,35 @@ ${htmlContent}
       // Don't fail the publish if category pages fail
     }
     
-    // Return immediately - index regeneration is slow and can cause timeouts
-    // Index can be regenerated separately via regenerateIndex() function if needed
-    // Note: Index regeneration removed from publish flow to prevent timeouts
-    // To regenerate index.html, call regenerateIndex() separately
+    // Regenerate index.html to include the new post
+    // Note: This may take some time, but it's important for posts to appear on the landing page
+    try {
+      Logger.log('Regenerating index.html to include new post...');
+      const regeneratedIndex = regenerateIndexHTML();
+      
+      // Get SHA for index.html
+      const indexSHA = getGitHubFileSHA('index.html');
+      
+      // Commit the regenerated index.html
+      const indexFiles = [{
+        path: 'index.html',
+        content: regeneratedIndex,
+        sha: indexSHA
+      }];
+      
+      commitToGitHub(indexFiles, 'Auto-updated index.html: Added ' + filename);
+      Logger.log('Index.html regenerated and committed successfully');
+    } catch (indexError) {
+      Logger.log('Warning: Could not regenerate index.html: ' + indexError.toString());
+      Logger.log('You may need to manually call regenerateIndex() to update the landing page');
+      // Don't fail the publish if index regeneration fails
+    }
+    
     return {
       success: true,
       filename: filename,
       url: `https://garyteh.com/${filename}`,
-      message: postSHA ? 'Post updated successfully!' : 'Post published successfully!'
+      message: postSHA ? 'Post updated successfully!' : 'Post published successfully! Index regenerated.'
     };
     
   } catch (e) {
