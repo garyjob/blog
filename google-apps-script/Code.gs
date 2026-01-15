@@ -239,7 +239,15 @@ function callGrok(prompt, history) {
              '- The user gives raw ideas—help turn them into structured blog content with catchy title, intro, sections, wrap-up.\n' +
              '- **Always format the title as the first line: # Title Here**\n' +
              '- Ask questions to dig deeper and understand their perspective.\n' +
-             '- Suggest relevant categories based on content.\n' +
+             '- **IMPORTANT: When suggesting categories, format them as a markdown list at the end of your response:**\n' +
+             '  - Cat 1\n' +
+             '  - Cat 2\n' +
+             '  - Cat 3\n' +
+             '  Example: If the post is about AI and startups, use:\n' +
+             '  - Technology\n' +
+             '  - Startups\n' +
+             '  - AI\n' +
+             '  Always use this exact format: lines starting with "- " (dash followed by space)\n' +
              '- After a few turns refining the content, say "Looks done—want to publish?"\n' +
              '\n\nTONE:\n' +
              '- Conversational, not formal\n' +
@@ -2514,56 +2522,91 @@ function publishDraft(draftFilename) {
     
     if (categoriesIndex !== -1) {
       // Extract suggested categories from content
-      // Pattern: **Suggested Categories**: cat1, cat2, cat3
-      // Or: Suggested Categories: cat1, cat2, cat3
-      // Match from the start of "suggested categories" to end of line or next paragraph
+      // Pattern 1: Markdown list format (preferred): lines starting with "- "
+      // Pattern 2: HTML ul/li format (backward compatibility)
+      // Pattern 3: **Suggested Categories**: cat1, cat2, cat3
+      // Pattern 4: Suggested Categories: cat1, cat2, cat3
       const lineStart = categoriesIndex;
       const restOfContent = markdownContent.substring(lineStart);
       
-      // Try multiple patterns to extract categories
-      // Pattern 1: **Suggested Categories**: cat1, cat2, cat3
-      // Pattern 2: Suggested Categories: cat1, cat2, cat3
-      // Pattern 3: **Suggested Categories**: (with ** prefix before "Suggested")
-      let categoriesStr = '';
-      // First try with ** prefix (most common format)
-      const pattern1 = restOfContent.match(/\*\*\s*[Ss]uggested\s+[Cc]ategories\s*:?\s*([^\n]+)/i);
-      if (pattern1) {
-        categoriesStr = pattern1[1].trim();
+      // First, try to extract from markdown list format (preferred format: lines starting with "- ")
+      const markdownListPattern = /(?:^|\n)\s*-\s+([^\n]+)/g;
+      const markdownMatches = [...restOfContent.matchAll(markdownListPattern)];
+      
+      if (markdownMatches && markdownMatches.length > 0) {
+        // Extract categories from markdown list format
+        for (const match of markdownMatches) {
+          const category = match[1].trim();
+          // Skip if it's a header or other non-category text
+          if (category.length > 0 && 
+              !category.toLowerCase().includes('suggested') && 
+              !category.toLowerCase().includes('categories') &&
+              !category.toLowerCase().includes('cat 1') &&
+              !category.toLowerCase().includes('cat 2') &&
+              !category.toLowerCase().includes('cat 3')) {
+            suggestedCategories.push(category);
+          }
+        }
+        Logger.log('Found ' + suggestedCategories.length + ' categories from markdown list format: ' + suggestedCategories.join(', '));
       } else {
-        // Try with single * or no prefix
-        const pattern2 = restOfContent.match(/[*]?\s*[Ss]uggested\s+[Cc]ategories\s*:?\s*([^\n]+)/i);
-        if (pattern2) {
-          categoriesStr = pattern2[1].trim();
+        // Fallback to HTML ul/li format (backward compatibility)
+        const ulPattern = /<ul>[\s\S]*?<\/ul>/i;
+        const ulMatch = restOfContent.match(ulPattern);
+        
+        if (ulMatch) {
+          // Extract all <li> tags from the ul
+          const liMatches = ulMatch[0].matchAll(/<li>([^<]+)<\/li>/gi);
+          for (const match of liMatches) {
+            const category = match[1].trim();
+            if (category.length > 0) {
+              suggestedCategories.push(category);
+            }
+          }
+          Logger.log('Found ' + suggestedCategories.length + ' categories from ul/li format: ' + suggestedCategories.join(', '));
         } else {
-          // Try without any prefix
-          const pattern3 = restOfContent.match(/[Ss]uggested\s+[Cc]ategories\s*:?\s*([^\n]+)/i);
-          if (pattern3) {
-            categoriesStr = pattern3[1].trim();
+          // Fallback to comma-separated format
+          let categoriesStr = '';
+          // Try with ** prefix (most common format)
+          const pattern1 = restOfContent.match(/\*\*\s*[Ss]uggested\s+[Cc]ategories\s*:?\s*([^\n]+)/i);
+          if (pattern1) {
+            categoriesStr = pattern1[1].trim();
+          } else {
+            // Try with single * or no prefix
+            const pattern2 = restOfContent.match(/[*]?\s*[Ss]uggested\s+[Cc]ategories\s*:?\s*([^\n]+)/i);
+            if (pattern2) {
+              categoriesStr = pattern2[1].trim();
+            } else {
+              // Try without any prefix
+              const pattern3 = restOfContent.match(/[Ss]uggested\s+[Cc]ategories\s*:?\s*([^\n]+)/i);
+              if (pattern3) {
+                categoriesStr = pattern3[1].trim();
+              }
+            }
+          }
+          
+          if (categoriesStr) {
+            // Remove any trailing text that might be on the same line (like "This feels like a solid")
+            // Take only up to the first newline or end of string
+            categoriesStr = categoriesStr.split(/\n/)[0].trim();
+            // Remove any trailing punctuation or extra text
+            categoriesStr = categoriesStr.replace(/\s+This feels.*$/i, '').trim();
+            
+            Logger.log('Extracted categories string: "' + categoriesStr + '"');
+            
+            // Split by comma and clean up
+            suggestedCategories = categoriesStr.split(',').map(c => c.trim()).filter(c => c.length > 0);
+            Logger.log('Found ' + suggestedCategories.length + ' suggested categories in content: ' + suggestedCategories.join(', '));
+          } else {
+            Logger.log('Warning: Found "suggested categories" text but could not parse categories from: ' + restOfContent.substring(0, 200));
+            Logger.log('Full restOfContent: ' + restOfContent.substring(0, 500));
           }
         }
       }
       
-      if (categoriesStr) {
-        // Remove any trailing text that might be on the same line (like "This feels like a solid")
-        // Take only up to the first newline or end of string
-        categoriesStr = categoriesStr.split(/\n/)[0].trim();
-        // Remove any trailing punctuation or extra text
-        categoriesStr = categoriesStr.replace(/\s+This feels.*$/i, '').trim();
-        
-        Logger.log('Extracted categories string: "' + categoriesStr + '"');
-        
-        // Split by comma and clean up
-        suggestedCategories = categoriesStr.split(',').map(c => c.trim()).filter(c => c.length > 0);
-        Logger.log('Found ' + suggestedCategories.length + ' suggested categories in content: ' + suggestedCategories.join(', '));
-        
-        // Use suggested categories if they exist (they override frontmatter)
-        if (suggestedCategories.length > 0) {
-          categories = suggestedCategories;
-          Logger.log('Using suggested categories from content instead of frontmatter');
-        }
-      } else {
-        Logger.log('Warning: Found "suggested categories" text but could not parse categories from: ' + restOfContent.substring(0, 200));
-        Logger.log('Full restOfContent: ' + restOfContent.substring(0, 500));
+      // Use suggested categories if they exist (they override frontmatter)
+      if (suggestedCategories.length > 0) {
+        categories = suggestedCategories;
+        Logger.log('Using suggested categories from content instead of frontmatter');
       }
     } else {
       // Also check for standalone "Categories:" (not in frontmatter, which would be "categories:")
@@ -2587,16 +2630,42 @@ function publishDraft(draftFilename) {
       }
     }
     
-    // Remove "Suggested Categories" line from content if found
+    // Remove "Suggested Categories" section from content if found (including markdown list or ul/li HTML)
     if (categoriesIndex !== -1) {
       // Find the start of the line containing the categories metadata
       let lineStart = categoriesIndex;
       while (lineStart > 0 && markdownContent[lineStart - 1] !== '\n') {
         lineStart--;
       }
-      // Remove everything from that line onwards
-      markdownContent = markdownContent.substring(0, lineStart).trim();
-      Logger.log('Removed categories metadata and everything after it');
+      
+      // Check if there's a markdown list after "Suggested Categories" (preferred format)
+      const restOfContent = markdownContent.substring(lineStart);
+      const markdownListPattern = /(?:^|\n)(\s*-\s+[^\n]+(?:\n\s*-\s+[^\n]+)*)/;
+      const markdownListMatch = restOfContent.match(markdownListPattern);
+      
+      if (markdownListMatch) {
+        // Remove from lineStart to end of markdown list
+        const listEndIndex = lineStart + restOfContent.indexOf(markdownListMatch[0]) + markdownListMatch[0].length;
+        markdownContent = markdownContent.substring(0, lineStart).trim() + 
+                         markdownContent.substring(listEndIndex).trim();
+        Logger.log('Removed categories metadata including markdown list');
+      } else {
+        // Fallback: Check for HTML ul/li block (backward compatibility)
+        const ulPattern = /<ul>[\s\S]*?<\/ul>/i;
+        const ulMatch = restOfContent.match(ulPattern);
+        
+        if (ulMatch) {
+          // Remove from lineStart to end of ul tag
+          const ulEndIndex = lineStart + restOfContent.indexOf(ulMatch[0]) + ulMatch[0].length;
+          markdownContent = markdownContent.substring(0, lineStart).trim() + 
+                           markdownContent.substring(ulEndIndex).trim();
+          Logger.log('Removed categories metadata including ul/li HTML block');
+        } else {
+          // Remove everything from that line onwards (comma-separated format)
+          markdownContent = markdownContent.substring(0, lineStart).trim();
+          Logger.log('Removed categories metadata and everything after it');
+        }
+      }
     }
     
     // Final check: If we found suggested categories, use them (they override frontmatter)

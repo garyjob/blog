@@ -432,6 +432,82 @@
                 max-height: 150px;
                 padding: 12px 45px 12px 12px; /* Reduced padding, minimal for send button */
                 line-height: 1.5;
+                transition: all 0.3s ease;
+            }
+            
+            .input-wrapper textarea.expanded {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: 100vw;
+                height: 100vh;
+                max-height: 100vh !important;
+                min-height: 100vh !important;
+                border-radius: 0;
+                border: none;
+                border-top: 2px solid var(--border);
+                z-index: 1000;
+                padding: 50px 45px 80px 20px;
+                font-size: 16px;
+            }
+            
+            /* Close button for fullscreen textarea - larger on mobile */
+            .textarea-close-btn {
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                border: none;
+                background: var(--bg-secondary);
+                color: var(--text-primary);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.8rem;
+                z-index: 1002;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                transition: all 0.2s;
+                opacity: 0;
+                pointer-events: none;
+                min-width: 44px;
+                min-height: 44px;
+            }
+            
+            .input-wrapper textarea.expanded ~ .textarea-close-btn {
+                opacity: 1;
+                pointer-events: all;
+            }
+            
+            .textarea-close-btn:active {
+                background: var(--border);
+                transform: scale(0.95);
+            }
+            
+            .input-wrapper textarea.expanded ~ .send-btn-inline {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 1001;
+            }
+            
+            body.textarea-expanded .container > *:not(.input-area) {
+                opacity: 0.3;
+                pointer-events: none;
+            }
+            
+            body.textarea-expanded .input-area {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                background: var(--bg-primary);
+                border-top: 2px solid var(--border);
             }
             
             .send-btn-inline {
@@ -672,6 +748,81 @@
             line-height: 1.6;
             box-sizing: border-box;
             overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+        
+        .input-wrapper textarea.expanded {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            max-height: 100vh !important;
+            min-height: 100vh !important;
+            border-radius: 0;
+            border: none;
+            border-top: 2px solid var(--border);
+            z-index: 1000;
+            padding: 50px 50px 80px 20px;
+            font-size: 1.1rem;
+        }
+        
+        /* Close button for fullscreen textarea */
+        .textarea-close-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            z-index: 1002;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .input-wrapper textarea.expanded ~ .textarea-close-btn {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .textarea-close-btn:hover {
+            background: var(--border);
+            transform: scale(1.1);
+        }
+        
+        /* Hide other elements when textarea is expanded */
+        .input-wrapper textarea.expanded ~ .send-btn-inline {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1001;
+        }
+        
+        body.textarea-expanded .container > *:not(.input-area) {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        
+        body.textarea-expanded .input-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: var(--bg-primary);
+            border-top: 2px solid var(--border);
         }
         
         .send-btn-inline {
@@ -948,7 +1099,7 @@
                     <label for="globalSpeechSpeed">Speed:</label>
                     <select id="globalSpeechSpeed">
                         <option value="1">1×</option>
-                        <option value="1.5">1.5×</option>
+                        <option value="1.5" selected>1.5×</option>
                         <option value="2">2×</option>
                     </select>
                 </div>
@@ -1020,6 +1171,15 @@
                     >
                         ➤
                     </button>
+                    <button 
+                        type="button"
+                        class="textarea-close-btn" 
+                        id="textareaCloseBtn" 
+                        title="Close fullscreen (or press Escape)"
+                        aria-label="Close fullscreen"
+                    >
+                        ✕
+                    </button>
                 </div>
                 <button class="btn btn-primary" id="sendBtn" style="display: none;">
                     Send
@@ -1044,11 +1204,11 @@
             <!-- Published Link Display -->
             <div id="publishedLinkContainer" style="display: none; margin-top: 15px; padding: 12px; background: rgba(39, 174, 96, 0.1); border: 1px solid var(--success); border-radius: 8px;">
                 <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                    <span style="color: var(--success); font-weight: 600;">✅ Published:</span>
+                    <span id="publishedLinkLabel" style="color: var(--success); font-weight: 600;">✅ Published:</span>
                     <a id="publishedLink" href="#" target="_blank" rel="noopener noreferrer" 
                        style="color: var(--accent); text-decoration: underline; font-weight: 500; word-break: break-all;">
                     </a>
-                    <span style="color: var(--text-secondary); font-size: 0.9em;">(Click to view)</span>
+                    <span id="publishedLinkHint" style="color: var(--text-secondary); font-size: 0.9em;">(Click to view)</span>
                 </div>
             </div>
         </div>
@@ -1063,6 +1223,8 @@
         let currentSpeech = null; // Track current speech synthesis
         let currentSpeakingMessageId = null; // Track which message is being read
         let confirmedTranscript = ''; // Track confirmed text from voice recognition
+        let pendingPublishedUrl = null;
+        const BLOG_BASE_URL = 'https://garyteh.com';
         
         // Initialize
         window.onload = function() {
@@ -1076,6 +1238,19 @@
         
         // Test if image upload function is accessible
         function testImageUploadFunction() {
+            // Only test if google.script.run is available (i.e., running in Google Apps Script environment)
+            if (typeof google === 'undefined' || !google.script || !google.script.run) {
+                console.log('Running locally - Google Apps Script functions not available');
+                // Disable image upload button when running locally
+                const imageBtn = document.getElementById('imageBtn');
+                if (imageBtn) {
+                    imageBtn.disabled = true;
+                    imageBtn.title = 'Image upload only available in deployed Google Apps Script environment';
+                    imageBtn.style.opacity = '0.5';
+                }
+                return;
+            }
+            
             google.script.run
                 .withSuccessHandler(function(result) {
                     console.log('Image upload function test:', result);
@@ -1118,9 +1293,9 @@
             // Global speech speed selector
             const globalSpeechSpeed = document.getElementById('globalSpeechSpeed');
             if (globalSpeechSpeed) {
-                // Initialize with saved preference
+                // Initialize with saved preference or default to 1.5
                 const savedSpeed = getSpeechSpeed();
-                globalSpeechSpeed.value = savedSpeed.toString();
+                globalSpeechSpeed.value = savedSpeed ? savedSpeed.toString() : '1.5';
                 
                 // Update when changed
                 globalSpeechSpeed.addEventListener('change', function() {
@@ -1161,21 +1336,59 @@
                 voiceBtn.addEventListener('click', toggleVoiceRecording);
             }
             
+            // Close button handler
+            const closeBtn = document.getElementById('textareaCloseBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const input = document.getElementById('messageInput');
+                    if (input) {
+                        input.classList.remove('expanded');
+                        input.classList.remove('sending');
+                        document.body.classList.remove('textarea-expanded');
+                        input.blur();
+                    }
+                });
+            }
+            
             // Message input keydown
             const messageInput = document.getElementById('messageInput');
             if (messageInput) {
                 messageInput.addEventListener('keydown', handleKeyDown);
-                // Auto-scroll to cursor when typing for better visibility
-                messageInput.addEventListener('input', function() {
-                    // Scroll to cursor position
-                    this.scrollTop = this.scrollHeight;
-                });
-                // Also scroll on focus to ensure cursor is visible
+                // Expand to fullscreen on focus
                 messageInput.addEventListener('focus', function() {
+                    this.classList.add('expanded');
+                    document.body.classList.add('textarea-expanded');
                     setTimeout(() => {
                         this.scrollTop = this.scrollHeight;
                     }, 100);
                 });
+                
+                // Collapse on blur (when clicking outside)
+                messageInput.addEventListener('blur', function() {
+                    // Only collapse if not sending (send button click will handle it)
+                    // Small delay to allow send button click to register
+                    setTimeout(() => {
+                        const closeBtn = document.getElementById('textareaCloseBtn');
+                        if (document.activeElement !== this && 
+                            document.activeElement !== closeBtn &&
+                            !this.classList.contains('sending')) {
+                            this.classList.remove('expanded');
+                            document.body.classList.remove('textarea-expanded');
+                        }
+                    }, 200);
+                });
+                
+                // Auto-scroll to cursor when typing
+                messageInput.addEventListener('input', function() {
+                    // Scroll to cursor position
+                    this.scrollTop = this.scrollHeight;
+                });
+                // Collapse on blur (optional - you can remove this if you want it to stay expanded)
+                // messageInput.addEventListener('blur', function() {
+                //     this.classList.remove('expanded');
+                // });
             }
             
             // Dark mode button
@@ -1390,6 +1603,17 @@
         // Handle Enter key - allow Enter to create new lines, use Shift+Enter or Cmd/Ctrl+Enter to send
         function handleKeyDown(event) {
             if (!event) return;
+            // Escape key closes fullscreen textarea
+            if (event.key === 'Escape') {
+                const input = document.getElementById('messageInput');
+                if (input && input.classList.contains('expanded')) {
+                    input.classList.remove('expanded');
+                    input.classList.remove('sending');
+                    document.body.classList.remove('textarea-expanded');
+                    input.blur();
+                    event.preventDefault();
+                }
+            }
             // Only send on Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux)
             if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
                 event.preventDefault();
@@ -1456,6 +1680,15 @@
                 }
                 
                 // Upload to server (pass base64 and metadata)
+                // Check if running locally
+                if (typeof google === 'undefined' || !google.script || !google.script.run) {
+                    imageBtn.classList.remove('uploading');
+                    imageBtn.disabled = false;
+                    showStatus('Image upload only available in deployed Google Apps Script environment', 'error');
+                    document.getElementById('imageInput').value = '';
+                    return;
+                }
+                
                 try {
                     google.script.run
                         .withSuccessHandler(function(result) {
@@ -1533,10 +1766,66 @@
             
             if (!message) return;
             
-            // Check if google.script.run is available
+            // Check if google.script.run is available - allow local testing
             if (typeof google === 'undefined' || !google.script || !google.script.run) {
-                console.error('google.script.run is not available. This page must be served as a Google Apps Script web app.');
-                showStatus('Error: This page must be accessed through the Google Apps Script web app URL, not opened directly.', 'error');
+                console.log('Running locally - simulating message send for UI testing');
+                // Simulate sending for local testing
+                showStatus('Running locally - message would be sent in deployed environment', 'success');
+                
+                // Add user message to history
+                conversationHistory.push({
+                    role: 'user',
+                    content: message
+                });
+                
+                // Render user message
+                addMessage('user', message, conversationHistory.length - 1);
+                input.value = '';
+                
+                // Reset textarea to default size and remove fullscreen
+                input.classList.remove('expanded');
+                input.classList.remove('sending');
+                document.body.classList.remove('textarea-expanded');
+                input.style.height = '';
+                input.blur(); // Remove focus to collapse
+                
+                // Remove editing highlight if any
+                document.querySelectorAll('.message.editing').forEach(msg => {
+                    msg.classList.remove('editing');
+                });
+                
+                saveConversation();
+                
+                // Show loading
+                const loadingId = addMessage('assistant', 'Loading...');
+                const sendBtnInline = document.getElementById('sendBtnInline');
+                if (sendBtnInline) {
+                    sendBtnInline.disabled = true;
+                    const loadingDiv = document.createElement('div');
+                    loadingDiv.className = 'loading';
+                    sendBtnInline.innerHTML = '';
+                    sendBtnInline.appendChild(loadingDiv);
+                }
+                
+                // Show a mock response for UI testing
+                setTimeout(() => {
+                    removeMessage(loadingId);
+                    const mockResponse = 'This is a mock response for local testing. In the deployed environment, this would be the actual AI response from Grok.';
+                    conversationHistory.push({
+                        role: 'assistant',
+                        content: mockResponse
+                    });
+                    addMessage('assistant', mockResponse, conversationHistory.length - 1);
+                    saveConversation();
+                    
+                    // Re-enable send button
+                    if (sendBtnInline) {
+                        sendBtnInline.disabled = false;
+                        sendBtnInline.innerHTML = '➤';
+                    }
+                    showStatus('', '');
+                }, 1000);
+                
                 return;
             }
             
@@ -1553,6 +1842,13 @@
             // Render user message
             addMessage('user', message, conversationHistory.length - 1);
             input.value = '';
+            
+            // Reset textarea to default size and remove fullscreen
+            input.classList.remove('expanded');
+            input.classList.remove('sending');
+            document.body.classList.remove('textarea-expanded');
+            input.style.height = '';
+            input.blur(); // Remove focus to collapse
             
             // Remove editing highlight if any
             document.querySelectorAll('.message.editing').forEach(msg => {
@@ -1804,6 +2100,9 @@
             // Put message content in input field
             const input = document.getElementById('messageInput');
             input.value = message.content;
+            // Expand textarea to fullscreen when editing
+            input.classList.add('expanded');
+            document.body.classList.add('textarea-expanded');
             input.focus();
             
             // Highlight the message being edited
@@ -1847,14 +2146,64 @@
             }
         }
         
+        function buildSlugFromTitle(title) {
+            return title
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-|-$/g, '');
+        }
+
+        function buildDateString(dateObj) {
+            return dateObj.getFullYear() + '-' + 
+                String(dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(dateObj.getDate()).padStart(2, '0');
+        }
+
+        function buildPublishedUrlFromDraftFilename(draftFilename) {
+            if (!draftFilename) return null;
+            const cleanFilename = draftFilename.replace(/^drafts\//, '');
+            const match = cleanFilename.match(/^(\d{4}-\d{2}-\d{2})-(.+)\.(md|html)$/);
+            if (!match) return null;
+            const htmlFilename = `${match[1]}-${match[2]}.html`;
+            return `${BLOG_BASE_URL}/${htmlFilename}`;
+        }
+
+        function buildPublishedUrlFromTitle(title) {
+            if (!title) return null;
+            const slug = buildSlugFromTitle(title);
+            if (!slug) return null;
+            const dateStr = buildDateString(new Date());
+            return `${BLOG_BASE_URL}/${dateStr}-${slug}.html`;
+        }
+
+        function showPublishedLinkPending(url) {
+            showPublishedLink(url, {
+                label: '🔗 Publish URL (pending):',
+                labelColor: 'var(--accent)',
+                hint: 'Publishing…',
+                hintColor: 'var(--text-secondary)'
+            });
+        }
+
         // Publish draft as blog post (saves draft first, then publishes)
         function publishDraft() {
+            // Check if running locally
+            if (typeof google === 'undefined' || !google.script || !google.script.run) {
+                showStatus('Publishing only available in deployed Google Apps Script environment', 'error');
+                return;
+            }
+            
             // Check if we're editing an existing draft
             if (editingPostFilename) {
                 // Publish the existing draft
                 const publishBtn = document.getElementById('publishBtn');
                 publishBtn.disabled = true;
                 publishBtn.innerHTML = '<div class="loading"></div> Publishing...';
+                const predictedUrl = buildPublishedUrlFromDraftFilename(editingPostFilename);
+                if (predictedUrl) {
+                    pendingPublishedUrl = predictedUrl;
+                    showPublishedLinkPending(predictedUrl);
+                }
                 
                 google.script.run
                     .withSuccessHandler(function(result) {
@@ -1862,6 +2211,7 @@
                             showStatus('✅ Post published successfully!', 'success');
                             // Show published link
                             showPublishedLink(result.url);
+                            pendingPublishedUrl = null;
                             publishBtn.disabled = false;
                             publishBtn.innerHTML = '🚀 Publish';
                             setTimeout(() => {
@@ -1921,6 +2271,12 @@
                     title = firstUserMsg ? firstUserMsg.content.substring(0, 60) : 'New Post';
                 }
                 
+                const predictedUrl = buildPublishedUrlFromTitle(title);
+                if (predictedUrl) {
+                    pendingPublishedUrl = predictedUrl;
+                    showPublishedLinkPending(predictedUrl);
+                }
+                
                 // Build content from all assistant messages if not already set
                 if (!content) {
                     content = conversationHistory
@@ -1949,6 +2305,7 @@
                                         showStatus('✅ Post published successfully!', 'success');
                                         // Show published link
                                         showPublishedLink(publishResult.url);
+                                        pendingPublishedUrl = null;
                                         publishBtn.disabled = false;
                                         publishBtn.innerHTML = '🚀 Publish';
                                         setTimeout(() => {
@@ -1986,6 +2343,15 @@
         function showLoadDraft() {
             const section = document.getElementById('loadPostSection');
             section.style.display = 'block';
+            
+            // Check if running locally
+            if (typeof google === 'undefined' || !google.script || !google.script.run) {
+                const select = document.getElementById('postSelect');
+                select.innerHTML = '<option value="">Running locally - draft loading not available</option>';
+                select.disabled = true;
+                showStatus('Draft loading only available in deployed Google Apps Script environment', 'error');
+                return;
+            }
             
             // Load list of drafts if not already loaded
             const select = document.getElementById('postSelect');
@@ -2076,6 +2442,12 @@
         
         // Load existing draft
         function loadExistingPost() {
+            // Check if running locally
+            if (typeof google === 'undefined' || !google.script || !google.script.run) {
+                showStatus('Draft loading only available in deployed Google Apps Script environment', 'error');
+                return;
+            }
+            
             const select = document.getElementById('postSelect');
             const filename = select.value;
             
@@ -2174,12 +2546,23 @@
         }
         
         // Show published link
-        function showPublishedLink(url) {
+        function showPublishedLink(url, options) {
             const container = document.getElementById('publishedLinkContainer');
             const link = document.getElementById('publishedLink');
+            const label = document.getElementById('publishedLinkLabel');
+            const hint = document.getElementById('publishedLinkHint');
+            const resolvedOptions = options || {};
             if (container && link && url) {
                 link.href = url;
                 link.textContent = url;
+                if (label) {
+                    label.textContent = resolvedOptions.label || '✅ Published:';
+                    label.style.color = resolvedOptions.labelColor || 'var(--success)';
+                }
+                if (hint) {
+                    hint.textContent = resolvedOptions.hint || '(Click to view)';
+                    hint.style.color = resolvedOptions.hintColor || 'var(--text-secondary)';
+                }
                 container.style.display = 'block';
             }
         }
@@ -2315,7 +2698,7 @@
         // Get saved speech speed preference
         function getSpeechSpeed() {
             const saved = localStorage.getItem('blogDraftSpeechSpeed');
-            return saved ? parseFloat(saved) : 1.0;
+            return saved ? parseFloat(saved) : 1.5; // Default to 1.5
         }
         
         // Set speech speed preference

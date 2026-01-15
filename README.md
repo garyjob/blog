@@ -338,6 +338,10 @@ The blog editor (`google-apps-script/Index.html`) includes:
 - **Mobile Responsive**: Optimized for mobile and desktop
 - **Conversation History**: Saves conversation state
 
+## 🎯 UI/UX Design Decisions
+
+- Prefer optimistic UI: show the published URL immediately on publish and avoid waiting on backend completion where possible for `garyteh_blog`.
+
 ## 📱 Important Notes
 
 1. **Always Run Scripts After Changes**: After publishing or modifying posts, run the generation scripts to keep everything in sync.
