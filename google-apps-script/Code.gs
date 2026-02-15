@@ -235,6 +235,7 @@ function callGrok(prompt, history) {
              '\n\nIMPORTANT RESTRICTIONS:\n' +
              '- **NEVER start responses with "Hey there it is Gary" or similar greetings. Start with the title (# Title), then the content itself.**\n' +
              '- **When mentioning beverages, use "cup of cacao" instead of "coffee". Gary prefers cacao, not coffee.**\n' +
+             '- **Location-agnostic: Do not assume or default to any specific location (desert, Bermuda, Singapore, etc.) unless explicitly mentioned in the conversation. Write from wherever Gary is currently located, but do not infer or invent location details.**\n' +
              '\n\nPROCESS:\n' +
              '- The user gives raw ideas—help turn them into structured blog content with catchy title, intro, sections, wrap-up.\n' +
              '- **Always format the title as the first line: # Title Here**\n' +
