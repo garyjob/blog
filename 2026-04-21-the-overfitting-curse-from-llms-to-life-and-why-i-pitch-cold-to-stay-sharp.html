@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Overfitting Curse: From LLMs to Life, and Why I Pitch Cold to Stay Sharp - I was sipping my cup of cacao this morning, skimming through some LLM outputs, when I noticed it again—that creeping sense of overfitting. Spend long enough wit...">
+    <title>The Overfitting Curse: From LLMs to Life, and Why I Pitch Cold to Stay Sharp - Gary Teh's Blog</title>
+    
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://garyteh.com/2026-04-21-the-overfitting-curse-from-llms-to-life-and-why-i-pitch-cold-to-stay-sharp.html">
+    <meta property="og:title" content="The Overfitting Curse: From LLMs to Life, and Why I Pitch Cold to Stay Sharp">
+    <meta property="og:description" content="I was sipping my cup of cacao this morning, skimming through some LLM outputs, when I noticed it again—that creeping sense of overfitting. Spend long enough wit...">
+    <meta property="og:site_name" content="Gary Teh's Blog">
+    <meta property="article:published_time" content="2026-04-21T00:00:00+00:00">
+    <meta property="article:author" content="Gary Teh">
+    <meta property="article:tag" content="Technology">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:url" content="https://garyteh.com/2026-04-21-the-overfitting-curse-from-llms-to-life-and-why-i-pitch-cold-to-stay-sharp.html">
+    <meta name="twitter:title" content="The Overfitting Curse: From LLMs to Life, and Why I Pitch Cold to Stay Sharp">
+    <meta name="twitter:description" content="I was sipping my cup of cacao this morning, skimming through some LLM outputs, when I noticed it again—that creeping sense of overfitting. Spend long enough wit...">
+    
+    <!-- Additional meta for better sharing -->
+    <meta name="author" content="Gary Teh">
+    <link rel="canonical" href="https://garyteh.com/2026-04-21-the-overfitting-curse-from-llms-to-life-and-why-i-pitch-cold-to-stay-sharp.html">
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "The Overfitting Curse: From LLMs to Life, and Why I Pitch Cold to Stay Sharp",
+  "description": "I was sipping my cup of cacao this morning, skimming through some LLM outputs, when I noticed it again—that creeping sense of overfitting. Spend long enough wit...",
+  "author": {
+    "@type": "Person",
+    "name": "Gary Teh"
+  },
+  "datePublished": "2026-04-21T00:00:00+00:00",
+  "dateModified": "2026-04-21T00:00:00+00:00",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Gary Teh's Blog",
+    "url": "https://garyteh.com"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://garyteh.com/2026-04-21-the-overfitting-curse-from-llms-to-life-and-why-i-pitch-cold-to-stay-sharp.html"
+  },
+  "keywords": "Technology"
+}
+    </script>
+    
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: #2980b9;
+        }
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag, a.category-tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+            color: #2c3e50;
+            text-decoration: none;
+        }
+        a.category-tag:hover {
+            background: #3498db;
+            color: white;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        .listen-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .listen-btn:hover:not(:disabled) {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+        .listen-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .listen-btn.playing {
+            background: #e74c3c;
+        }
+        .listen-btn.playing:hover {
+            background: #c0392b;
+        }
+        .speech-speed-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .speech-speed-controls label {
+            font-weight: 500;
+        }
+        .speech-speed-controls select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .speech-speed-controls select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to all posts</a>
+        
+        <div class="header">
+            <h1>The Overfitting Curse: From LLMs to Life, and Why I Pitch Cold to Stay Sharp</h1>
+            <div class="post-meta">
+                <span class="post-date">April 20, 2026</span>
+                <a href="categories/technology.html" class="category-tag">Technology</a>
+                
+            </div>
+        </div>
+
+        <div class="audio-controls">
+            <button id="listenBtn" class="listen-btn">
+                <span id="listenIcon">🔊</span>
+                <span id="listenText">Listen</span>
+            </button>
+            <div class="speech-speed-controls">
+                <label for="speedSelect">Speed:</label>
+                <select id="speedSelect">
+                    <option value="0.5">0.5x</option>
+                    <option value="0.75">0.75x</option>
+                    <option value="1">1x</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="1.75">1.75x</option>
+                    <option value="2">2x</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="content" id="postContent">
+<p>I was sipping my cup of cacao this morning, skimming through some LLM outputs, when I noticed it again—that creeping sense of overfitting. Spend long enough with these models, and they start turning into a “Yes Man,” mirroring your patterns, stroking your ego with every response. I’ve seen this before in tech, time and time again. Whether it was training regression models at Edmodo to predict what makes a great lesson plan, calculating expected rental yields and sales prices for RentalNerd, or endlessly tweaking Edgar’s AI swing trading algorithm, overfitting is the silent killer. It sneaks in, and before you know it, you’re drowning in false positives and negatives because the model’s too cozy with your biases.</p>
+
+<p>Here’s the parallel that keeps nagging at me: I’ve observed the same pattern in human echo chambers, just under a different name. When I’m in a group where everyone shares my opinions, my worldview—and they’re the only people I talk to—I start losing sight of the bigger reality. It’s a trap, and I’ve fallen into it. That’s why I’ve come to appreciate the value of not getting too in love with any one idea. There’s something powerful in hearing out even the most obnoxious person from your perspective. Their voice, their pushback, becomes part of a calibration process, a way to keep your mental model from overfitting to a narrow slice of the world.</p>
+
+<p>In the Web3 and tech space, it’s way too easy to hang out in tech hubs with the tech bros, buzzing about ideas that all sound the same. It feels good, validating—but it’s a bubble. So, I’ve made it a point to break out of that comfortable ecosystem. Here’s how I keep myself grounded:</p>
+
+<ul>
+<li><strong>Cold Pitching for Raw Truth</strong>: With <a href="https://agroverse.shop" target="_blank" rel="noopener noreferrer">Agroverse</a> cacao, I commit to pitching our unique value proposition (UVP) to at least five cold audiences every week. No warm intros, just straight-up strangers. I’ve even started using AI to map out routes to stores or apothecaries, then I walk in and pitch the product cold. It’s the quickest way to see if the UVP resonates—or falls flat.</li>
+<li><strong>Stepping Into Different Worlds</strong>: This past winter, I spent time in the desert with nomads, roasting and brewing cacao for them each morning. It wasn’t just about the drink; it was about hearing unfiltered reactions from people living a reality far removed from mine. That kind of perspective shift is something no tech conference can match.</li>
+<li><strong>Hustling Roots</strong>: I got my first taste of real feedback as a kid at my parents’ hawker stall, selling roasted pork, duck, chicken, and braised duck. The UVP was already honed by my folks, but I learned to read faces, tweak my approach. Later, working as hired talent in Singapore, I’d take marketing scripts and pitch to random strangers on the street. By day’s end, you’d know what stuck.</li>
+<li><strong>Startup Growth Hacking</strong>: Diving into the startup scene, especially with growth hacking, filled in gaps from my early days. It’s hands-on, messy, and taught me how to stay connected to what’s real—whether it was figuring out teacher needs at Edmodo or testing pitches elsewhere.</li>
+</ul>
+
+<p>Now, let’s talk about the cost of overfitting—because I’ve paid it. At Edmodo, we’d recommend a lesson plan based on a model that swore the teacher would love it, only to have them hate it or find it irrelevant. Boom, lost trust, lost an eyeball. With RentalNerd, we’d spot a property with a high predicted yield, bid on it, and then the cap ratio would tank—deployment screwed. And Edgar? Man, I spent a whole year overfitting that trading model. It looked great against blackout data—stuff it wasn’t trained on—but when I benchmarked it against live market data, I lost cash. During inflation years, when everyone else was getting outsized returns thanks to Federal Reserve rates, my portfolio just went sideways. Painful lesson.</p>
+
+<p>Key observation: Marketing—and really, understanding people—is a never-ending grind because the market always shifts. AI can automate the backend, the plumbing, sure. But deciphering the zeitgeist, feeling the pulse of what’s happening? That’s a human thing. From my parents’ stall to Web3, it’s an end-to-end loop of pitching, listening, failing, and adapting.</p>
+
+<p>Reflections for the day: I’ve learned the hard way that overfitting—whether in tech or life—can cost you big. I’m more committed than ever to stepping out, testing my ideas against raw reality. So, what about you? Have you ever paid the price for overfitting to a model or an echo chamber? How do you keep yourself calibrated to the real world, especially with AI taking over more tasks? Drop a thought—I’m all ears.</p>
+
+<ul>
+<li>Technology</li>
+<li>Artificial Intelligence</li>
+<li>Marketing</li>
+<li>Society</li>
+</ul>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to all posts</a></p>
+            <p>© Gary Teh • 2009-2025</p>
+        </footer>
+    </div>
+    <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/f4002ef7c62ee64494321ba14/9c56fa20706b0138cf6fea672.js");</script>
+    <script>
+        (function() {
+            if (!('speechSynthesis' in window)) {
+                document.getElementById('listenBtn').disabled = true;
+                document.getElementById('listenBtn').title = 'Text-to-speech not supported in this browser';
+                return;
+            }
+            
+            let currentUtterance = null;
+            let isPlaying = false;
+            const listenBtn = document.getElementById('listenBtn');
+            const listenIcon = document.getElementById('listenIcon');
+            const listenText = document.getElementById('listenText');
+            const speedSelect = document.getElementById('speedSelect');
+            const postContent = document.getElementById('postContent');
+            
+            // Load saved speed preference (defaults to 1x if not set)
+            const savedSpeed = localStorage.getItem('blogSpeechSpeed') || '1';
+            
+            // Set the selected option based on saved preference
+            speedSelect.value = savedSpeed;
+            
+            // Ensure the visual selection matches (in case the value wasn't in the list)
+            if (!speedSelect.options[speedSelect.selectedIndex] || 
+                speedSelect.options[speedSelect.selectedIndex].value !== savedSpeed) {
+                // Find the matching option
+                for (let i = 0; i < speedSelect.options.length; i++) {
+                    if (speedSelect.options[i].value === savedSpeed) {
+                        speedSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            // Save speed preference when changed (persists across all blog posts)
+            speedSelect.addEventListener('change', function() {
+                const newSpeed = speedSelect.value;
+                localStorage.setItem('blogSpeechSpeed', newSpeed);
+                // Update current utterance if playing
+                if (currentUtterance) {
+                    currentUtterance.rate = parseFloat(newSpeed);
+                }
+            });
+            
+            function getTextContent() {
+                // Get all text from post content, excluding code blocks and script tags
+                const content = postContent.cloneNode(true);
+                // Remove script and style tags
+                content.querySelectorAll('script, style, pre, code').forEach(el => el.remove());
+                // Get text content
+                return content.textContent || content.innerText || '';
+            }
+            
+            function toggleSpeech() {
+                if (isPlaying && currentUtterance) {
+                    // Stop speaking
+                    window.speechSynthesis.cancel();
+                    currentUtterance = null;
+                    isPlaying = false;
+                    listenBtn.classList.remove('playing');
+                    listenIcon.textContent = '🔊';
+                    listenText.textContent = 'Listen';
+                } else {
+                    // Start speaking
+                    const text = getTextContent();
+                    if (!text.trim()) {
+                        alert('No content to read');
+                        return;
+                    }
+                    
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = parseFloat(speedSelect.value);
+                    utterance.pitch = 1;
+                    utterance.volume = 1;
+                    
+                    utterance.onstart = function() {
+                        isPlaying = true;
+                        listenBtn.classList.add('playing');
+                        listenIcon.textContent = '⏸️';
+                        listenText.textContent = 'Pause';
+                    };
+                    
+                    utterance.onend = function() {
+                        isPlaying = false;
+                        currentUtterance = null;
+                        listenBtn.classList.remove('playing');
+                        listenIcon.textContent = '🔊';
+                        listenText.textContent = 'Listen';
+                    };
+                    
+                    utterance.onerror = function(event) {
+                        console.error('Speech synthesis error:', event);
+                        isPlaying = false;
+                        currentUtterance = null;
+                        listenBtn.classList.remove('playing');
+                        listenIcon.textContent = '🔊';
+                        listenText.textContent = 'Listen';
+                        alert('Error reading text. Please try again.');
+                    };
+                    
+                    currentUtterance = utterance;
+                    window.speechSynthesis.speak(utterance);
+                }
+            }
+            
+            listenBtn.addEventListener('click', toggleSpeech);
+            
+            // Stop speech when page is unloaded
+            window.addEventListener('beforeunload', function() {
+                if (isPlaying) {
+                    window.speechSynthesis.cancel();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
