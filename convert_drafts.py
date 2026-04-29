@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 """
 Convert markdown draft files to HTML blog posts.
+
+Default behavior is incremental: drafts whose target HTML already exists
+are skipped, so re-running the script does not regenerate (and silently
+mutate) already-published posts. Use --force to re-convert everything.
+
+Frontmatter is optional. When absent, the title is taken from the first
+`# ` heading (or the filename), the date is parsed from the
+`YYYY-MM-DD-...` filename prefix, and the category defaults to
+"Technology".
 """
 
+import argparse
 import os
 import re
 import html
@@ -56,6 +66,49 @@ def parse_frontmatter(content):
                 frontmatter[key] = value
     
     return frontmatter, markdown_content
+
+
+def derive_frontmatter(markdown_content, filename_stem):
+    """Derive frontmatter defaults when the markdown has none.
+
+    - title: first `# ` heading, else filename slug humanized.
+    - date: YYYY-MM-DD prefix from the filename.
+    - formattedDate: derived from date.
+    - categories: ["Technology"] (matches every recent draft's default).
+    """
+    derived = {}
+
+    title_match = re.search(r'^#\s+(.+?)\s*$', markdown_content, re.MULTILINE)
+    if title_match:
+        derived['title'] = title_match.group(1).strip()
+    else:
+        derived['title'] = filename_stem.replace('-', ' ').strip().title()
+
+    date_match = re.match(r'^(\d{4}-\d{2}-\d{2})', filename_stem)
+    if date_match:
+        derived['date'] = date_match.group(1)
+        try:
+            d = datetime.strptime(derived['date'], '%Y-%m-%d')
+            derived['formattedDate'] = d.strftime('%B %d, %Y')
+        except ValueError:
+            pass
+
+    derived['categories'] = ['Technology']
+    return derived
+
+
+def strip_leading_title(markdown_content, title):
+    """Drop a leading `# title` line so it's not duplicated in body."""
+    lines = markdown_content.split('\n')
+    out = []
+    title_consumed = False
+    for line in lines:
+        if not title_consumed and line.strip() == f'# {title}':
+            title_consumed = True
+            continue
+        out.append(line)
+    return '\n'.join(out).lstrip('\n')
+
 
 def markdown_to_html(markdown_text):
     """Convert markdown to HTML, extracting only the final version."""
@@ -465,58 +518,91 @@ def generate_html_post(frontmatter, content_html, filename_base):
 
 def main():
     """Main conversion function."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        '--force', action='store_true',
+        help='Re-convert drafts even when target HTML already exists.',
+    )
+    parser.add_argument(
+        '--only', metavar='STEM',
+        help='Convert only the draft with this filename stem (e.g. '
+             '2026-04-28-circles-cacao-and-stumbling-distance).',
+    )
+    args = parser.parse_args()
+
     drafts_dir = Path(__file__).parent / 'drafts'
     output_dir = Path(__file__).parent
-    
+
     if not drafts_dir.exists():
         print(f"Drafts directory not found: {drafts_dir}")
         return
-    
-    md_files = list(drafts_dir.glob('*.md'))
-    
+
+    md_files = sorted(drafts_dir.glob('*.md'))
+    if args.only:
+        md_files = [f for f in md_files if f.stem == args.only]
+        if not md_files:
+            print(f"No draft matching --only {args.only}")
+            return
+
     if not md_files:
         print("No markdown files found in drafts folder")
         return
-    
-    print(f"Found {len(md_files)} markdown files to convert\n")
-    
+
+    print(f"Found {len(md_files)} markdown files to consider\n")
+
+    converted = 0
+    skipped_existing = 0
+    errors = 0
+
     for md_file in md_files:
+        filename_base = md_file.stem
+        output_file = output_dir / f"{filename_base}.html"
+
+        if output_file.exists() and not args.force:
+            skipped_existing += 1
+            continue
+
         print(f"Processing: {md_file.name}")
-        
+
         try:
-            # Read markdown file
             with open(md_file, 'r', encoding='utf-8') as f:
                 content = f.read()
-            
-            # Parse frontmatter
+
             frontmatter, markdown_content = parse_frontmatter(content)
-            
+
             if not frontmatter:
-                print(f"  ⚠️  No frontmatter found, skipping")
-                continue
-            
-            # Convert markdown to HTML
+                frontmatter = derive_frontmatter(markdown_content, filename_base)
+                markdown_content = strip_leading_title(
+                    markdown_content, frontmatter['title']
+                )
+                print(
+                    f"  ℹ️  No frontmatter — derived title='{frontmatter['title']}', "
+                    f"date={frontmatter.get('date', 'unknown')}, "
+                    f"categories={frontmatter['categories']}"
+                )
+
             content_html = markdown_to_html(markdown_content)
-            
-            # Generate filename base (without extension)
-            filename_base = md_file.stem
-            
-            # Generate HTML
             html_content = generate_html_post(frontmatter, content_html, filename_base)
-            
-            # Write HTML file
-            output_file = output_dir / f"{filename_base}.html"
+
             with open(output_file, 'w', encoding='utf-8') as f:
                 f.write(html_content)
-            
+
+            converted += 1
             print(f"  ✅ Created: {output_file.name}")
-            
+
         except Exception as e:
+            errors += 1
             print(f"  ❌ Error processing {md_file.name}: {e}")
             import traceback
             traceback.print_exc()
-    
-    print(f"\n✅ Conversion complete! Processed {len(md_files)} files.")
+
+    print(
+        f"\n✅ Done. Converted: {converted}, "
+        f"skipped (HTML already exists): {skipped_existing}, errors: {errors}."
+    )
+    if skipped_existing and not args.force:
+        print("   Use --force to re-convert existing posts.")
+
 
 if __name__ == '__main__':
     main()
