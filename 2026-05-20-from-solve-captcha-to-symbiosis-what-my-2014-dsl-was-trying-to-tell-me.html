@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="From solve_captcha to Symbiosis: What My 2014 DSL Was Trying to Tell Me - I built a JSON-driven web scraper in 2014. It had one escape valve for when the bot couldn't get past a CAPTCHA: just sleep until a human walks over and clicks the squiggly letters. Twelve years later I'm finally building the thing that action always wanted to be.">
+    <title>From solve_captcha to Symbiosis: What My 2014 DSL Was Trying to Tell Me - Gary Teh's Blog</title>
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://garyteh.com/2026-05-20-from-solve-captcha-to-symbiosis-what-my-2014-dsl-was-trying-to-tell-me.html">
+    <meta property="og:title" content="From solve_captcha to Symbiosis: What My 2014 DSL Was Trying to Tell Me">
+    <meta property="og:description" content="I built a JSON-driven web scraper in 2014. It had one escape valve for when the bot couldn't get past a CAPTCHA: just sleep until a human walks over and clicks the squiggly letters. Twelve years later I'm finally building the thing that action always wanted to be.">
+    <meta property="og:site_name" content="Gary Teh's Blog">
+    <meta property="article:published_time" content="2026-05-20T00:00:00+00:00">
+    <meta property="article:author" content="Gary Teh">
+    <meta property="article:tag" content="Technology">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:url" content="https://garyteh.com/2026-05-20-from-solve-captcha-to-symbiosis-what-my-2014-dsl-was-trying-to-tell-me.html">
+    <meta name="twitter:title" content="From solve_captcha to Symbiosis: What My 2014 DSL Was Trying to Tell Me">
+    <meta name="twitter:description" content="I built a JSON-driven web scraper in 2014. It had one escape valve for when the bot couldn't get past a CAPTCHA: just sleep until a human walks over and clicks the squiggly letters. Twelve years later I'm finally building the thing that action always wanted to be.">
+
+    <!-- Additional meta for better sharing -->
+    <meta name="author" content="Gary Teh">
+    <link rel="canonical" href="https://garyteh.com/2026-05-20-from-solve-captcha-to-symbiosis-what-my-2014-dsl-was-trying-to-tell-me.html">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "From solve_captcha to Symbiosis: What My 2014 DSL Was Trying to Tell Me",
+  "description": "I built a JSON-driven web scraper in 2014. It had one escape valve for when the bot couldn't get past a CAPTCHA: just sleep until a human walks over and clicks the squiggly letters. Twelve years later I'm finally building the thing that action always wanted to be.",
+  "author": {
+    "@type": "Person",
+    "name": "Gary Teh"
+  },
+  "datePublished": "2026-05-20T00:00:00+00:00",
+  "dateModified": "2026-05-20T00:00:00+00:00",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Gary Teh's Blog",
+    "url": "https://garyteh.com"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://garyteh.com/2026-05-20-from-solve-captcha-to-symbiosis-what-my-2014-dsl-was-trying-to-tell-me.html"
+  },
+  "keywords": "Technology"
+}
+    </script>
+
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-link {
+            color: #3498db;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .header {
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2em;
+            line-height: 1.3;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-weight: 600;
+        }
+        .category-tag, .tag, a.category-tag {
+            background: #ecf0f1;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 5px;
+            color: #2c3e50;
+            text-decoration: none;
+        }
+        a.category-tag:hover {
+            background: #3498db;
+            color: white;
+        }
+        .content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .content h1, .content h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .content h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content ul, .content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            font-style: italic;
+        }
+        .content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        .listen-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .listen-btn:hover:not(:disabled) {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+        .listen-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .listen-btn.playing {
+            background: #e74c3c;
+        }
+        .listen-btn.playing:hover {
+            background: #c0392b;
+        }
+        .speech-speed-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .speech-speed-controls label {
+            font-weight: 500;
+        }
+        .speech-speed-controls select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .speech-speed-controls select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to all posts</a>
+
+        <div class="header">
+            <h1>From <code>solve_captcha</code> to Symbiosis: What My 2014 DSL Was Trying to Tell Me</h1>
+            <div class="post-meta">
+                <span class="post-date">May 20, 2026</span>
+                <a href="categories/technology.html" class="category-tag">Technology</a>
+
+            </div>
+        </div>
+
+        <div class="audio-controls">
+            <button id="listenBtn" class="listen-btn">
+                <span id="listenIcon">&#128266;</span>
+                <span id="listenText">Listen</span>
+            </button>
+            <div class="speech-speed-controls">
+                <label for="speedSelect">Speed:</label>
+                <select id="speedSelect">
+                    <option value="0.5">0.5x</option>
+                    <option value="0.75">0.75x</option>
+                    <option value="1">1x</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="1.75">1.75x</option>
+                    <option value="2">2x</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="content" id="postContent">
+<p>I built a JSON-driven web scraper in 2014 called Krake.io. You wrote a recipe describing which buttons to click, which fields to fill, which DOM elements to extract, and a Rails app would walk the recipe against a real browser and hand you back rows of data. There was a Sinatra worker, a Redis queue, a small army of Chrome instances. It paid the bills for a few years.</p>
+
+<p>The DSL had eleven action types &mdash; <code>click</code>, <code>insert</code>, <code>scroll_bottom</code>, <code>wait</code>, <code>trigger_change</code>, a few others &mdash; and one weird one that I added near the end and never quite knew how to explain. It was called <code>solve_captcha</code>. The implementation was three lines long: poll the DOM in a one-second loop until the CAPTCHA element disappeared, then continue the recipe. The semantics were stranger than the code. The bot would just sit there. A human, watching the screen, would walk over and click the squiggly letters, and the recipe would resume.</p>
+
+<p>I didn&rsquo;t realize at the time that <code>solve_captcha</code> was the single most important action in the DSL. It was the only one that acknowledged that the human existed at all. Every other action assumed the bot was alone in front of the browser. <code>solve_captcha</code> was the only place where the contract was &ldquo;a person and a bot are working on this together, the bot just doesn&rsquo;t know how to talk to the person.&rdquo; Twelve years later I&rsquo;m finally building the thing that action always wanted to be.</p>
+
+<h2>The cost of pretending the human isn&rsquo;t there</h2>
+
+<p>Every browser-automation tool I&rsquo;ve touched since 2014 has bet the same way: <em>remove the human</em>. Selenium, Puppeteer, Playwright Codegen &mdash; you record a session, replay it later, and if anything changes you debug the recording. Modern agentic tools &mdash; Browser Use, Stagehand, Skyvern, Multi-On, Open Operator &mdash; bet harder. They want the LLM to <em>be</em> the human. Spin up a headless Chrome, log in with stored credentials, complete the task unsupervised, ping you on Slack when it&rsquo;s done. The pitch is &ldquo;your hands are free.&rdquo;</p>
+
+<p>Anyone running these tools at any kind of scale knows the dirty secret. The hands aren&rsquo;t free. They&rsquo;re just hidden behind retries and timeouts. The 2FA prompt still fires; somebody has to type the code. The CAPTCHA still shows up; somebody has to click the boats. LinkedIn anti-bot still fingerprints the session; somebody has to log back in. The site rearranges its DOM next Tuesday; the recipe breaks silently and somebody &mdash; usually you, at 9pm &mdash; has to figure out which selector drifted. The human is in the loop. We just pretend we aren&rsquo;t.</p>
+
+<p>The funny thing is that nobody actually <em>wants</em> the human removed from real operational work. The work I do most days is talking to retail partners about whether their cacao shipments arrived, drafting check-ins, nudging an Apps Script when it stalled, walking a contributor through their first Edgar submission. The work isn&rsquo;t labor I want offloaded; it&rsquo;s judgment I want augmented. The right shape for the tool isn&rsquo;t a bot pretending to be me. It&rsquo;s a copilot sitting next to me at the same browser, doing the rote parts and asking when the next decision needs my eyes.</p>
+
+<h2>What I&rsquo;m building</h2>
+
+<p>The project is called <code>krake_browser</code> and the design is deliberately one component longer than feels strictly necessary. There is a Chromium instance running on my laptop with a persistent user-data directory. It is logged into WhatsApp Web, Instagram, Facebook, the FDA establishment-registration portal, and a handful of other operational surfaces. The sessions never expire because the browser process never shuts down. When my MacBook reboots, the launcher script brings the same Chromium back up against the same profile and within thirty seconds I am back in WhatsApp without scanning a single QR code.</p>
+
+<p>A Sinatra app (lineage from the same Sinatra worker that ran Krake.io in 2014) attaches to that Chromium over the Chrome DevTools Protocol, which is to say the same wire format every Playwright and Puppeteer script in the world uses to drive a browser. The Sinatra app exposes itself to LLMs through an MCP server. When I am chatting with Claude or Cursor or Kimi and I say &ldquo;send Kirsten a check-in on WhatsApp,&rdquo; the LLM calls <code>list_recipes()</code> against the MCP server, finds <code>partner_followups/check_in</code>, then calls <code>run_recipe(name, vars)</code> with Kirsten&rsquo;s details. The Sinatra app walks the recipe step by step in the live browser. I am watching the whole time.</p>
+
+<p>The recipe DSL is the original Krake DSL, near-verbatim. <code>click</code>, <code>insert</code>, <code>scroll_bottom</code>, <code>wait</code>, the rest of the eleven actions, the <code>{{VARIABLE}}</code> substitution, the <code>columns[]</code> extractor &mdash; all preserved. Recipes from 2014 that I have lying around in dead repos should run with at most cosmetic changes. The only new action is one that <code>solve_captcha</code> always wanted to grow into:</p>
+
+<pre><code>{
+  "action": "human_intervention",
+  "prompt": "Drafted message to Kirsten:\n\n> Hey Kirsten, quick check-in re. inventory &mdash; got 5 min?\n\nReview in the WhatsApp tab and hit Continue to send.",
+  "screenshot": true,
+  "ack_required": true,
+  "timeout_seconds": 600
+}</code></pre>
+
+<p>When the recipe hits one of these, the Sinatra app pauses, captures a screenshot of the tab, fires an <code>intervention_required</code> event back through MCP. The LLM surfaces the prompt and the screenshot to me in chat. I read it, possibly edit the drafted message directly in the WhatsApp text box, and tell the LLM whether to continue. The LLM calls <code>ack_intervention(token, &quot;continue&quot;)</code> and the recipe resumes from where it stopped. <code>solve_captcha</code> was this pattern with the ack channel missing &mdash; the recipe would resume when the CAPTCHA DOM disappeared, with no way for me to say &ldquo;no, abort&rdquo; or &ldquo;edit this first&rdquo; or &ldquo;skip this step.&rdquo;</p>
+
+<p>The repos are <a href="https://github.com/KrakeIO/krake_browser">KrakeIO/krake_browser</a> for the engine, <a href="https://github.com/KrakeIO/krake_recipes">KrakeIO/krake_recipes</a> for the public recipe library (WhatsApp, Instagram, LinkedIn, Facebook, FDA), and <a href="https://github.com/TrueSightDAO/tdg_recipes">TrueSightDAO/tdg_recipes</a> for the DAO-specific ones that I use to run partner check-ins and Edgar submissions. They are all currently private. They flip to public when the engine actually works end-to-end and I have a thirty-second screencap of a real WhatsApp message going out under my approval. Today only the design is real &mdash; the engine implementation is the next stretch of work.</p>
+
+<h2>Guideposts, not selectors</h2>
+
+<p>The strict-DOM-selector model is the part of the 2014 design that hasn&rsquo;t aged well. Krake.io recipes assume that <code>button[aria-label='Connect']</code> means the same thing today that it meant when you wrote the recipe. LinkedIn alone disproves this assumption on a monthly cadence. The recipes I&rsquo;ve carried over from old projects break silently. By the time I notice, the operational data they were collecting has had a two-week hole.</p>
+
+<p>The next layer up &mdash; what I&rsquo;ve started calling guideposts &mdash; treats each action as a goal rather than a contract. Each step gets three new optional fields alongside the strict selector: an <code>intent</code> (&ldquo;Open connect-with-note modal&rdquo;), a natural-language <code>hint</code> (&ldquo;Click Connect; if hidden, it&rsquo;s under the three-dot &lsquo;More&rsquo; button&rdquo;), and an <code>expected_state</code> the executor can check after the action (&ldquo;Textarea for personal note is visible&rdquo;). The executor tries the strict selector first because it&rsquo;s fast, cheap, deterministic, and works most of the time. When it fails or the expected state doesn&rsquo;t match the actual DOM, the executor escalates: feed the intent and the hint and a trimmed accessibility tree to an LLM, ask it to find the right element. Strict and flexible coexist in the same recipe. You only pay the cost of LLM grounding when the cheap path actually breaks.</p>
+
+<h2>The actually-interesting part</h2>
+
+<p>None of the above is novel. Stagehand and Browser Use have been doing intent-grounded browser actions for over a year now. What I haven&rsquo;t seen anyone do, and what I think is the interesting part, is closing the loop on selector drift through the same human who is sitting next to the browser anyway.</p>
+
+<p>The mechanism is a recipe-execution-bounded observation mode. Default state: the engine is not watching me. When a recipe hits a step it cannot execute &mdash; selector missing, expected state wrong &mdash; the executor fires a <code>human_intervention</code> with &ldquo;I lost the Connect button.&rdquo; While I am completing that step manually, the engine flips on a CDP event subscription. Every click I make, every text I type, every navigation I trigger, gets recorded into a buffer along with the stable selector path the engine can infer from the event target. When I finish my recovery and hit Continue, the engine flips the observation off again. The LLM then diffs my observed clicks against the broken recipe and opens a pull request against the recipe&rsquo;s home repo. The new selector goes into a <code>learned_selectors[]</code> chain alongside the old one; the old one stays as a fallback because sites sometimes A/B-test their DOMs for weeks.</p>
+
+<p>I review the PR like I&rsquo;d review any other contributor&rsquo;s PR. I merge. The next scheduled <code>git pull</code> propagates the fix to my engine. The next time the recipe runs, the new selector wins. The cycle is human-in-the-loop because I&rsquo;m the one doing the manual recovery, but the LLM is doing the work of <em>noticing</em> what I did and <em>writing it down</em> in a place future runs will inherit.</p>
+
+<p>The thing I like about this is that the recipe gets <em>more reliable over time through normal use</em>, not less. Selector drift becomes self-healing through symbiosis. Every other browser-automation tool I&rsquo;ve seen degrades silently as sites change. This one repairs itself by leveraging the work I was doing anyway. It also means that the recipes don&rsquo;t need to be written perfectly &mdash; a good-enough recipe with weak selectors becomes a great recipe after the first few real runs, because every break is a teaching moment.</p>
+
+<h2>Why 2014 me would be confused</h2>
+
+<p>2014 me would have built <code>krake_browser</code> by hard-coding a CAPTCHA detector, then a 2FA detector, then a login-wall detector, then a soft-block detector, in an ever-expanding list of special-cased &ldquo;the bot can&rsquo;t do this&rsquo; cases. The DSL would have accreted twenty more action types, each one solving a specific anti-bot pattern. The thing would have been brittle and would have shipped slower with every release because the surface area kept growing.</p>
+
+<p>2026 me has the LLM as a copilot at both ends of the loop. At runtime it picks the recipe, supplies the variables, surfaces my interventions, and acks them on my behalf when the recipe and the conversation both say it&rsquo;s clear. At maintenance time it watches me recover from breaks and writes the fix back into the recipe library. The DSL doesn&rsquo;t need to anticipate every site change because the LLM can re-ground at runtime and the human can teach it at recovery time. The action vocabulary stays small and stable; the intelligence sits in the LLM, the human, and the feedback loop between them.</p>
+
+<p>I will say, in the same tone I used in <a href="2026-05-16-the-boring-stack-at-velocity-substrate-operator-attention-and-ai-as-the-second-reader.html">the post from last week</a> about why the TrueSight stack is so deliberately thin: the boring move here is the right one. Most of <code>krake_browser</code> is a hosted Chrome, a Sinatra app, a CDP attach, and a JSON DSL from 2014. The new part is two action types and a recovery-mode flag. The intelligence comes from the people and the LLMs around the system, not from anything novel inside it. That ordering is the whole point. <code>solve_captcha</code> was the first action that knew the truth. I just spent twelve years catching up to it.</p>
+
+<h2>Where this is going</h2>
+
+<p>The three repos are scaffolded. The READMEs, the architecture doc, the recipe schema, the first four sample recipes (one for WhatsApp, one for LinkedIn, one for Instagram, one for the FDA portal) are in. The engine itself &mdash; the Sinatra app, the CDP attach, the MCP server, the recipe executor that walks <code>actions[]</code> and pauses on <code>human_intervention</code> &mdash; is what I&rsquo;m building next. The validation criterion is the smallest thing I could plausibly demo: one WhatsApp message, drafted by an LLM, approved by me in chat, sent through my own logged-in WhatsApp Web. After that gates, the guidepost layer and the teach-by-narration loop become engine v0.2. After <em>that</em> works on real partner check-ins for a few weeks, the repos flip to public and there will probably be a follow-up post with a recorded screencap and a more honest assessment of what worked and what was thinkier-than-it-needed-to-be.</p>
+
+<p>I am writing this now, before the engine actually works, mostly because the design feels coherent to me in a way it didn&rsquo;t a week ago and I want to capture it while the framing is fresh. There&rsquo;s a real risk that the implementation reveals something I haven&rsquo;t thought of and the design changes. That&rsquo;s fine. The shape of the post will hold up even if specific decisions don&rsquo;t.</p>
+
+<p>If you&rsquo;ve been running browser-automation tools that pretend you aren&rsquo;t in the loop, and you&rsquo;re tired of pretending: this is what it looks like to design for the truth instead. <code>solve_captcha</code>, all grown up.</p>
+
+        </div>
+
+        <footer>
+            <p><a href="index.html">&larr; Back to all posts</a></p>
+            <p>&copy; Gary Teh &bull; 2009-2026</p>
+        </footer>
+    </div>
+    <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/f4002ef7c62ee64494321ba14/9c56fa20706b0138cf6fea672.js");</script>
+    <script>
+        (function() {
+            if (!('speechSynthesis' in window)) {
+                document.getElementById('listenBtn').disabled = true;
+                document.getElementById('listenBtn').title = 'Text-to-speech not supported in this browser';
+                return;
+            }
+
+            let currentUtterance = null;
+            let isPlaying = false;
+            const listenBtn = document.getElementById('listenBtn');
+            const listenIcon = document.getElementById('listenIcon');
+            const listenText = document.getElementById('listenText');
+            const speedSelect = document.getElementById('speedSelect');
+            const postContent = document.getElementById('postContent');
+
+            const savedSpeed = localStorage.getItem('blogSpeechSpeed') || '1';
+            speedSelect.value = savedSpeed;
+
+            if (!speedSelect.options[speedSelect.selectedIndex] ||
+                speedSelect.options[speedSelect.selectedIndex].value !== savedSpeed) {
+                for (let i = 0; i < speedSelect.options.length; i++) {
+                    if (speedSelect.options[i].value === savedSpeed) {
+                        speedSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            speedSelect.addEventListener('change', function() {
+                const newSpeed = speedSelect.value;
+                localStorage.setItem('blogSpeechSpeed', newSpeed);
+                if (currentUtterance) {
+                    currentUtterance.rate = parseFloat(newSpeed);
+                }
+            });
+
+            function getTextContent() {
+                const content = postContent.cloneNode(true);
+                content.querySelectorAll('script, style, pre, code').forEach(el => el.remove());
+                return content.textContent || content.innerText || '';
+            }
+
+            function toggleSpeech() {
+                if (isPlaying && currentUtterance) {
+                    window.speechSynthesis.cancel();
+                    currentUtterance = null;
+                    isPlaying = false;
+                    listenBtn.classList.remove('playing');
+                    listenIcon.textContent = '🔊';
+                    listenText.textContent = 'Listen';
+                } else {
+                    const text = getTextContent();
+                    if (!text.trim()) {
+                        alert('No content to read');
+                        return;
+                    }
+
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = parseFloat(speedSelect.value);
+                    utterance.pitch = 1;
+                    utterance.volume = 1;
+
+                    utterance.onstart = function() {
+                        isPlaying = true;
+                        listenBtn.classList.add('playing');
+                        listenIcon.textContent = '⏸️';
+                        listenText.textContent = 'Pause';
+                    };
+
+                    utterance.onend = function() {
+                        isPlaying = false;
+                        currentUtterance = null;
+                        listenBtn.classList.remove('playing');
+                        listenIcon.textContent = '🔊';
+                        listenText.textContent = 'Listen';
+                    };
+
+                    utterance.onerror = function(event) {
+                        console.error('Speech synthesis error:', event);
+                        isPlaying = false;
+                        currentUtterance = null;
+                        listenBtn.classList.remove('playing');
+                        listenIcon.textContent = '🔊';
+                        listenText.textContent = 'Listen';
+                        alert('Error reading text. Please try again.');
+                    };
+
+                    currentUtterance = utterance;
+                    window.speechSynthesis.speak(utterance);
+                }
+            }
+
+            listenBtn.addEventListener('click', toggleSpeech);
+
+            window.addEventListener('beforeunload', function() {
+                if (isPlaying) {
+                    window.speechSynthesis.cancel();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
